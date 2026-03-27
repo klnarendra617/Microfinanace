@@ -29,8 +29,14 @@ app.get('/api/health', (req, res) =>
 
 // ── Connect DB & Start ──────────────────────────
 const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(process.env.MONGO_URI)
+if (!MONGO_URI) {
+  console.error('❌ Missing MONGO_URI. Set MONGO_URI in .env or environment variables.');
+  process.exit(1);
+}
+
+mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected');
     if (process.env.VERCEL) {
