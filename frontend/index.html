@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GramSeva – Village Loan Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#fdf8f1; --surface:#fff; --surface2:#fef3e2; --border:#e8dcc8;
+  --text:#1e1206; --text2:#6b5740;
+  --accent:#c95c14; --accent2:#f5a623;
+  --green:#2a7d4f; --green-bg:#e6f4ec;
+  --red:#c0392b; --red-bg:#fdecea;
+  --blue:#1a6fa8; --blue-bg:#e8f3fc;
+  --yellow:#b07d10;--yellow-bg:#fff8e1;
+  --shadow:0 2px 12px rgba(100,60,20,.10);
+  --radius:14px; --radius-sm:8px;
+  --font:'DM Sans',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
+
+.header{background:var(--accent);color:#fff;padding:0 20px;display:flex;align-items:center;
+  justify-content:space-between;height:64px;box-shadow:0 2px 10px rgba(180,60,0,.25);
+  position:sticky;top:0;z-index:100;flex-wrap:nowrap;gap:8px}
+.hbrand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hbrand h1{font-size:20px;font-weight:700}
+.hbrand small{font-size:11px;opacity:.82;display:block;margin-top:-2px}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.hdr-username{font-size:13px;font-weight:600;opacity:.95;white-space:nowrap;
+  background:rgba(255,255,255,.18);padding:5px 10px;border-radius:20px;letter-spacing:.3px}
+.hdr-btn{background:rgba(255,255,255,.18);color:#fff;border:none !important;
+  white-space:nowrap;font-size:13px;font-weight:600}
+.hdr-btn:hover{background:rgba(255,255,255,.32)}
+.hdr-logout{background:rgba(255,80,50,.35) !important}
+.hdr-logout:hover{background:rgba(255,80,50,.55) !important}
+
+.nav-tabs{background:var(--surface);border-bottom:2px solid var(--border);display:flex;
+  overflow-x:auto;padding:0 12px;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:14px 18px;font-size:14px;font-weight:500;color:var(--text2);border:none;
+  background:none;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.nav-tab:hover:not(.active){color:var(--text);background:var(--surface2)}
+
+.main{max-width:1000px;margin:0 auto;padding:24px 16px 80px}
+.page{display:none}.page.active{display:block}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.stat-card .label{font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.stat-card .value{font-size:26px;font-weight:700;font-family:var(--mono)}
+.stat-card.given .value{color:var(--accent)}.stat-card.collected .value{color:var(--green)}
+.stat-card.pending .value{color:var(--red)}.stat-card.loans .value{color:var(--blue)}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.section-title{font-size:18px;font-weight:700}
+.section-sub{font-size:13px;color:var(--text2);margin-top:2px}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius-sm);
+  font-size:14px;font-weight:600;border:2px solid transparent;transition:all .18s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#a84610}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+.btn-ghost{background:transparent;color:var(--text2);border-color:var(--border)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#1f6040}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#a82820}
+.btn-yellow{background:var(--yellow);color:#fff}.btn-yellow:hover{background:#8a6008}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select{padding:10px 12px;border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);font-size:14px;background:var(--surface);transition:border-color .2s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent)}
+.form-actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+.calc-preview{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px 16px;margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.calc-item .ci-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase}
+.calc-item .ci-value{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--accent)}
+
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:var(--shadow);margin-bottom:14px;transition:box-shadow .2s}
+.card:hover{box-shadow:0 4px 20px rgba(100,60,20,.14)}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-name{font-size:17px;font-weight:700}
+.card-village{display:inline-block;background:var(--surface2);color:var(--accent);font-size:11px;
+  font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap}
+.card-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}
+.meta-item .m-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase}
+.meta-item .m-value{font-size:15px;font-weight:700;font-family:var(--mono)}
+
+.progress-wrap{margin-top:14px}
+.progress-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px}
+.progress-bar{height:10px;background:var(--border);border-radius:20px;overflow:hidden}
+.progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--green),#4caf82);transition:width .5s}
+
+.balance-summary{background:linear-gradient(135deg,#e6f4ec,#fef3e2);border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);padding:12px 16px;margin-top:12px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bs-item .bs-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)}
+.bs-item .bs-value{font-size:16px;font-weight:700;font-family:var(--mono)}
+.bs-item.total .bs-value{color:var(--text)}.bs-item.paid .bs-value{color:var(--green)}.bs-item.remaining .bs-value{color:var(--red)}
+
+/* FREE-FORM PAYMENT LIST */
+.pay-list{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.pay-entry{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px}
+.pay-entry-left{display:flex;align-items:center;gap:10px}
+.pay-serial{background:var(--blue-bg);color:var(--blue);font-size:11px;font-weight:700;
+  padding:3px 9px;border-radius:20px;white-space:nowrap}
+.pay-amount{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--green)}
+.pay-date{font-size:12px;color:var(--text2);margin-left:6px}
+.pay-note{font-size:12px;color:var(--text2);font-style:italic;margin-top:2px}
+.pay-entry-actions{display:flex;gap:5px;flex-shrink:0}
+
+.filter-bar{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;margin-bottom:18px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.filter-bar .form-group{min-width:140px;flex:1}
+
+.report-table{width:100%;border-collapse:collapse;font-size:14px}
+.report-table th{background:var(--surface2);padding:10px 12px;text-align:left;font-size:11px;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text2)}
+.report-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.report-table tr:last-child td{border-bottom:none}
+.report-table .total-row td{font-weight:700;background:var(--surface2)}
+.table-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+
+.calendar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month{font-size:16px;font-weight:700}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day-name{text-align:center;font-size:10px;font-weight:700;color:var(--text2);padding:4px 0;text-transform:uppercase}
+.cal-day{height:34px;width:100%;border-radius:6px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;font-size:12px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;position:relative}
+.cal-day.empty{cursor:default}
+.cal-day:not(.empty):hover{background:var(--surface2);border-color:var(--border)}
+.cal-day.has-payments{font-weight:700}
+.cal-day.has-payments::after{content:'';position:absolute;bottom:3px;width:4px;height:4px;background:var(--green);border-radius:50%}
+.cal-day.has-given::after{content:'';position:absolute;bottom:3px;width:4px;height:4px;background:var(--accent);border-radius:50%}
+.cal-day.has-both::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:10px;height:4px;border-radius:20px;background:linear-gradient(90deg,var(--accent) 50%,var(--green) 50%)}
+.cal-day.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cal-day.selected::after{background:#fff}
+.cal-day.today{border-color:var(--accent2)}
+.cal-payments{margin-top:16px}
+.cal-wrap{max-width:420px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;
+  align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius);padding:28px 24px;max-width:560px;width:100%;
+  box-shadow:0 10px 50px rgba(0,0,0,.20);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:20px}
+
+.loan-info-banner{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px 16px;margin-bottom:18px}
+.lib-name{font-weight:700;font-size:15px;margin-bottom:6px}
+.lib-stats{display:flex;gap:18px;flex-wrap:wrap}
+.lib-stat{font-size:12px;color:var(--text2)}.lib-stat b{font-family:var(--mono)}
+
+.overpaid-warn{background:#fff8e1;border:1.5px solid var(--accent2);border-radius:var(--radius-sm);
+  padding:8px 14px;font-size:13px;color:var(--yellow);font-weight:600;margin-top:10px;display:none}
+.overpaid-warn.show{display:block}
+
+.empty-state{text-align:center;padding:50px 20px;color:var(--text2)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:15px}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-orange{background:#fff0e0;color:var(--accent)}
+
+
+.status-tab{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;
+  border:2px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .18s}
+.status-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.status-tab:hover:not(.active){background:var(--surface2);color:var(--text)}
+
+.toggle-btn{font-size:13px;color:var(--blue);background:none;border:none;cursor:pointer;font-weight:600;
+  margin-top:10px;padding:0;display:inline-flex;align-items:center;gap:5px}
+.toggle-content{display:none}.toggle-content.open{display:block}
+
+.toast-wrap{position:fixed;bottom:24px;right:16px;z-index:300;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--text);color:#fff;padding:12px 18px;border-radius:var(--radius-sm);font-size:14px;
+  font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.25);animation:toastIn .25s ease;max-width:300px}
+.toast.success{background:var(--green)}.toast.error{background:var(--red)}
+@keyframes toastIn{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — Mobile / Tablet / Desktop
+   ═══════════════════════════════════════════════ */
+
+/* ── Base: Mobile first (< 480px) ── */
+@media(max-width:480px){
+  /* Header */
+  .header{height:auto;padding:10px 12px;flex-wrap:nowrap;gap:6px;min-height:56px}
+  .hbrand h1{font-size:15px}
+  .hbrand small{font-size:9px}
+  .hbrand span{font-size:20px}
+  .hdr-username{font-size:11px;padding:3px 7px}
+  .hdr-txt{display:none} /* icon-only on mobile */
+  .hdr-right{gap:4px}
+
+  /* Header buttons — icon only on tiny screens */
+  .header .btn-sm{padding:7px 9px;font-size:15px;min-width:34px;justify-content:center}
+
+  /* Nav tabs */
+  .nav-tabs{padding:0 4px}
+  .nav-tab{padding:10px 10px;font-size:12px}
+
+  /* Main content */
+  .main{padding:14px 10px 70px}
+
+  /* Stat grid — 2 columns */
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+  .stat-card{padding:14px 12px}
+  .stat-card .value{font-size:20px}
+  .stat-card .label{font-size:10px}
+
+  /* Cards */
+  .card{padding:14px 12px}
+  .card-header{flex-direction:column;align-items:flex-start}
+  .card-name{font-size:15px}
+  .card-actions{display:flex;flex-wrap:wrap;gap:4px;width:100%}
+  .card-actions .btn-sm{flex:1;min-width:0;font-size:11px;padding:6px 6px;text-align:center;justify-content:center}
+  .card-meta{gap:10px}
+  .meta-item .m-value{font-size:13px}
+
+  /* Balance summary — single column */
+  .balance-summary{grid-template-columns:1fr;gap:6px}
+
+  /* Forms */
+  .form-grid{grid-template-columns:1fr}
+  .form-group input,.form-group select{font-size:16px} /* prevents zoom on iOS */
+  .filter-bar{padding:10px 12px;gap:8px}
+  .filter-bar .form-group{min-width:100%;flex:none}
+
+  /* Modal */
+  .modal{padding:20px 16px;border-radius:12px}
+  .modal-title{font-size:17px}
+
+  /* Tables — horizontal scroll */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .report-table{min-width:500px}
+  .report-table th,.report-table td{padding:8px 10px;font-size:12px}
+
+  /* Section header */
+  .section-header{flex-direction:column;align-items:flex-start;gap:6px}
+  .section-title{font-size:16px}
+
+  /* Payment entries */
+  .pay-entry{flex-direction:column;align-items:flex-start}
+  .pay-entry-actions{width:100%;justify-content:flex-end}
+
+  /* Overview card */
+  #overview-card{padding:16px 14px}
+  #overview-card .section-header{flex-direction:row}
+
+  /* Calendar */
+  .cal-wrap{max-width:100%}
+  .cal-day{height:30px;font-size:11px}
+  .cal-day-name{font-size:9px;padding:3px 0}
+  .cal-month{font-size:14px}
+  .calendar-header{margin-bottom:8px}
+
+  /* Expense breakdown chips */
+  #exp-breakdown > div{gap:6px}
+
+  /* Login box */
+  .login-box{padding:28px 20px;border-radius:16px}
+  .login-title{font-size:20px}
+
+  /* Toast */
+  .toast-wrap{bottom:12px;right:10px;left:10px}
+  .toast{max-width:100%}
+}
+
+/* ── Small tablets (480px – 768px) ── */
+@media(min-width:481px) and (max-width:768px){
+  .header{padding:0 16px}
+  .hbrand h1{font-size:18px}
+  .hdr-username{font-size:12px}
+
+  .main{padding:18px 14px 70px}
+
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .stat-card .value{font-size:22px}
+
+  .card-actions{flex-wrap:wrap;gap:5px}
+  .card-actions .btn-sm{font-size:12px}
+
+  .balance-summary{grid-template-columns:repeat(3,1fr)}
+
+  .form-grid{grid-template-columns:repeat(2,1fr)}
+  .form-group input,.form-group select{font-size:16px}
+
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .report-table{min-width:480px}
+
+  .cal-wrap{max-width:100%}
+  .cal-day{height:32px;font-size:12px}
+
+  .modal{max-width:95vw}
+}
+
+/* ── Tablets landscape / small desktop (769px – 1024px) ── */
+@media(min-width:769px) and (max-width:1024px){
+  .main{padding:20px 20px 70px}
+  .stat-grid{grid-template-columns:repeat(3,1fr)}
+  .form-grid{grid-template-columns:repeat(2,1fr)}
+  .balance-summary{grid-template-columns:repeat(3,1fr)}
+  .cal-wrap{max-width:480px}
+}
+
+/* ── Desktop (> 1024px) ── */
+@media(min-width:1025px){
+  .main{padding:28px 24px 80px}
+  .stat-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .form-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .balance-summary{grid-template-columns:repeat(3,1fr)}
+  .cal-wrap{max-width:440px}
+  .card-actions .btn-sm{white-space:nowrap}
+}
+
+/* ── Universal touch improvements ── */
+@media(hover:none){
+  /* Larger tap targets on touch devices */
+  .btn{min-height:40px}
+  .btn-sm{min-height:36px}
+  .nav-tab{min-height:44px}
+  .cal-day{min-height:36px}
+  .pay-week{min-height:44px}
+}
+
+
+/* ── Mobile bottom navigation bar ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:90;
+  background:var(--surface);border-top:1.5px solid var(--border);
+  padding:4px 0 env(safe-area-inset-bottom,4px);
+  box-shadow:0 -2px 10px rgba(100,60,20,.08)}
+.bottom-nav-inner{display:flex;justify-content:space-around;align-items:center}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:none;border:none;padding:5px 2px;cursor:pointer;
+  font-size:9px;font-weight:600;color:var(--text2);transition:color .15s;min-height:50px;
+  font-family:var(--font)}
+.bnav-btn .bicon{font-size:22px;line-height:1;transition:transform .15s}
+.bnav-btn.active{color:var(--accent)}
+.bnav-btn.active .bicon{transform:scale(1.2)}
+
+@media(max-width:768px){
+  .bottom-nav{display:block}
+  .nav-tabs{display:none}
+  .main{padding-bottom:80px !important}
+}
+
+/* ── LOGIN SCREEN ── */
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--accent) 0%,#8b3500 100%);
+  z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,.30);text-align:center}
+.login-logo{font-size:52px;margin-bottom:8px}
+.login-title{font-size:24px;font-weight:700;color:var(--text);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px;line-height:1.5}
+.login-box .lg-group{text-align:left;margin-bottom:14px}
+.login-box .lg-group label{font-size:12px;font-weight:700;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.login-box .lg-inp{width:100%;padding:11px 44px 11px 14px;border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);font-size:15px;background:var(--bg);transition:border-color .2s;box-sizing:border-box}
+.login-box .lg-inp:focus{outline:none;border-color:var(--accent)}
+.login-btn{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;
+  border-radius:var(--radius-sm);font-size:16px;font-weight:700;cursor:pointer;
+  margin-top:6px;transition:background .2s;font-family:var(--font)}
+.login-btn:hover{background:#a84610}
+.login-error{background:var(--red-bg);color:var(--red);border:1.5px solid #f5b8b0;
+  border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;font-weight:600;
+  margin-bottom:14px;display:none;text-align:left}
+.login-success{background:var(--green-bg);color:var(--green);border:1.5px solid #9dd4b4;
+  border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;font-weight:600;
+  margin-bottom:14px;display:none;text-align:left}
+.pw-wrap{position:relative}
+.pw-wrap .lg-inp{padding-right:44px}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;font-size:16px;color:var(--text2);padding:4px}
+.login-footer-link{font-size:13px;color:var(--blue);cursor:pointer;background:none;border:none;
+  text-decoration:underline;margin-top:16px;display:block;font-family:var(--font)}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen" class="login-screen">
+  <div class="login-box" id="login-box">
+
+    <!-- LOGIN PANEL -->
+    <div id="panel-login">
+      <div class="login-logo">🌾</div>
+      <div class="login-title">GramSeva</div>
+      <div class="login-sub">Village Loan Tracker<br>Sign in to continue</div>
+      <div class="login-error" id="login-error"></div>
+      <div class="lg-group">
+        <label>Username</label>
+        <input class="lg-inp" type="text" id="lg-username" placeholder="Enter username" autocomplete="username"/>
+      </div>
+      <div class="lg-group">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input class="lg-inp" type="password" id="lg-password" placeholder="Enter password"
+            autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()"/>
+          <button class="pw-eye" type="button" onclick="togglePw('lg-password',this)">👁</button>
+        </div>
+      </div>
+      <button class="login-btn" onclick="doLogin()">🔐 Sign In</button>
+      <div style="margin-top:16px;font-size:12px;color:var(--text2)">Forgot password? Contact admin.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="modal-changepw">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">🔑 Change Password</div>
+    <div class="login-error" id="cpw-error" style="font-family:var(--font)"></div>
+    <div class="login-success" id="cpw-success" style="font-family:var(--font)"></div>
+    <div class="form-group">
+      <label>Current Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="cpw-current" class="lg-inp" style="width:100%" placeholder="Current password"/>
+        <button class="pw-eye" type="button" onclick="togglePw('cpw-current',this)">👁</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label>New Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="cpw-new" class="lg-inp" style="width:100%" placeholder="New password"/>
+        <button class="pw-eye" type="button" onclick="togglePw('cpw-new',this)">👁</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label>Confirm New Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="cpw-confirm" class="lg-inp" style="width:100%" placeholder="Re-enter new password"/>
+        <button class="pw-eye" type="button" onclick="togglePw('cpw-confirm',this)">👁</button>
+      </div>
+    </div>
+    <div class="form-actions" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="doChangePassword()">✔ Update Password</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-changepw')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="hbrand">
+    <span style="font-size:26px">🌾</span>
+    <div><h1>GramSeva</h1><small>Village Loan Tracker</small></div>
+  </div>
+  <div class="hdr-right">
+    <span id="header-username" class="hdr-username"></span>
+    <button class="btn btn-sm hdr-btn" onclick="openAddLoan()">＋ <span class="hdr-txt">New Loan</span></button>
+    <button class="btn btn-sm hdr-btn" onclick="openModal('modal-changepw')" title="Change Password">🔑 <span class="hdr-txt">Password</span></button>
+    <button class="btn btn-sm hdr-btn hdr-logout" onclick="doLogout()" title="Logout">⏻ <span class="hdr-txt">Logout</span></button>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="showPage('dashboard',this)">📊 Dashboard</button>
+  <button class="nav-tab" onclick="showPage('loans',this)">📋 Loans</button>
+  <button class="nav-tab" onclick="showPage('payments',this)">💳 Payments</button>
+  <button class="nav-tab" onclick="showPage('calendar',this)">📅 Calendar</button>
+  <button class="nav-tab" onclick="showPage('expenses',this)">🧾 Expenses</button>
+</nav>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<section class="page active" id="page-dashboard">
+  <div class="section-header" style="margin-bottom:16px">
+    <div><div class="section-title">Overview</div><div class="section-sub">Your complete fund summary</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="openCapitalSetup()">⚙️ Set Capital</button>
+  </div>
+
+  <!-- CAPITAL SETUP BANNER (shown when capital not set) -->
+  <div id="capital-banner" style="display:none;background:var(--surface2);border:2px dashed var(--accent2);
+    border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;text-align:center">
+    <div style="font-size:24px;margin-bottom:6px">💰</div>
+    <div style="font-weight:700;margin-bottom:4px">Set your total capital to see your fund overview</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">e.g. If you have ₹5,00,000 to lend out, enter that amount</div>
+    <button class="btn btn-primary" onclick="openCapitalSetup()">＋ Set Capital Amount</button>
+  </div>
+
+  <!-- MAIN OVERVIEW CARD -->
+  <div id="overview-card" style="display:none;background:var(--surface);border:1.5px solid var(--border);
+    border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:20px">
+
+    <!-- Top: Capital row -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px">💰 Total Capital</div>
+        <div style="font-size:32px;font-weight:700;font-family:var(--mono);color:var(--text)" id="ov-capital">₹0</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="openCapitalSetup()">✏️ Edit Capital</button>
+    </div>
+
+    <!-- Flow row: Given → Collected → Expenses → Balance -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:14px 16px;border-left:4px solid var(--accent)">
+        <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">💸 Given Out</div>
+        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--accent)" id="ov-given">₹0</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px" id="ov-given-pct"></div>
+      </div>
+
+      <div style="background:var(--green-bg);border-radius:var(--radius-sm);padding:14px 16px;border-left:4px solid var(--green)">
+        <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">💰 Collected Back</div>
+        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--green)" id="ov-collected">₹0</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px" id="ov-collected-pct"></div>
+      </div>
+
+      <div style="background:var(--red-bg);border-radius:var(--radius-sm);padding:14px 16px;border-left:4px solid var(--red)">
+        <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🧾 Expenses</div>
+        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--red)" id="ov-expenses">₹0</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px" id="ov-expenses-pct"></div>
+      </div>
+
+      <div style="background:var(--blue-bg);border-radius:var(--radius-sm);padding:14px 16px;border-left:4px solid var(--blue);position:relative">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🏦 Balance in Hand</div>
+        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--blue)" id="ov-balance">₹0</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px">Capital − Given + Collected − Expenses</div>
+      </div>
+
+    </div>
+
+    <!-- Visual progress bar: how much of capital is deployed -->
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px">
+        <span>Capital deployed (Given out)</span>
+        <span id="ov-deploy-pct">0%</span>
+      </div>
+      <div style="height:12px;background:var(--border);border-radius:20px;overflow:hidden;position:relative">
+        <div id="ov-bar-given" style="height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s;position:absolute;top:0;left:0"></div>
+        <div id="ov-bar-collected" style="height:100%;border-radius:20px;background:linear-gradient(90deg,var(--green),#4caf82);transition:width .6s;position:absolute;top:0;left:0;opacity:.6"></div>
+      </div>
+      <div style="display:flex;gap:14px;margin-top:6px;font-size:11px;color:var(--text2)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--accent);display:inline-block"></span>Given</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--green);display:inline-block"></span>Collected back</span>
+      </div>
+    </div>
+
+    <!-- Pending recovery note -->
+    <div style="margin-top:16px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);
+      display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:13px">
+      <span style="color:var(--text2)">⏳ Still to collect from borrowers:</span>
+      <span style="font-family:var(--mono);font-weight:700;color:var(--accent)" id="ov-pending">₹0</span>
+    </div>
+
+    <div style="margin-top:8px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);
+      display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:13px">
+      <span style="color:var(--text2)">📋 Active loans:</span>
+      <span style="font-weight:700;color:var(--blue)" id="ov-loans">0 loans</span>
+    </div>
+
+    <!-- మొత్తం వడ్డీ ఖాతా -->
+    <div style="margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,#fff4e8,#fef9f0);
+      border:1.5px solid var(--accent2);border-radius:var(--radius-sm)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:18px">📒</span>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--accent)">మొత్తం వడ్డీ ఖాతా</div>
+          <div style="font-size:11px;color:var(--text2)">Total given out + interest (all active loans)</div>
+        </div>
+      </div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:26px;color:var(--accent)" id="ov-vk-total">₹0</div>
+      <div style="display:flex;gap:18px;margin-top:8px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">అసలు</div>
+          <div style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--text)" id="ov-vk-principal">₹0</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.4px">వడ్డీ</div>
+          <div style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--accent)" id="ov-vk-vaddi">₹0</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-header"><div class="section-title">Recent Loans</div></div>
+  <div id="dash-recent"></div>
+</section>
+
+<!-- LOANS -->
+<section class="page" id="page-loans">
+  <div class="section-header">
+    <div><div class="section-title">All Loans</div><div class="section-sub">Record payments anytime, any amount</div></div>
+    <button class="btn btn-primary" onclick="openAddLoan()">＋ New Loan</button>
+  </div>
+  <div class="filter-bar">
+    <div class="form-group" style="min-width:200px;flex:2">
+      <label>🔍 Search</label>
+      <input type="text" id="search-input" placeholder="Search by name or card no…" oninput="renderLoans()"/>
+    </div>
+    <div class="form-group">
+      <label>🏘 Village</label>
+      <select id="filter-village" onchange="renderLoans()"><option value="">All Villages</option></select>
+    </div>
+    <div class="form-group">
+      <label>📅 From</label><input type="date" id="filter-from" onchange="renderLoans()"/>
+    </div>
+    <div class="form-group">
+      <label>📅 To</label><input type="date" id="filter-to" onchange="renderLoans()"/>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="clearLoanFilters()" style="align-self:flex-end;height:38px">✕ Clear</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <button class="status-tab active" id="stab-all"    onclick="setStatusFilter('all')"   >📋 All</button>
+    <button class="status-tab"        id="stab-active" onclick="setStatusFilter('active')" >🟢 Active</button>
+    <button class="status-tab"        id="stab-closed" onclick="setStatusFilter('closed')" >✅ Closed</button>
+  </div>
+  <div id="loan-list"></div>
+</section>
+
+<!-- PAYMENTS -->
+<section class="page" id="page-payments">
+  <div class="section-header">
+    <div><div class="section-title">Payment History</div><div class="section-sub">All recorded payments — edit or delete any entry</div></div>
+  </div>
+  <div class="filter-bar">
+    <div class="form-group"><label>📅 Date</label><input type="date" id="pf-date" onchange="renderPaymentsPage()"/></div>
+    <div class="form-group"><label>🏘 Village</label>
+      <select id="pf-village" onchange="renderPaymentsPage()"><option value="">All Villages</option></select>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="clearPayFilters()" style="align-self:flex-end;height:38px">✕ Clear</button>
+  </div>
+  <div id="pay-summary" style="margin-bottom:14px"></div>
+  <div class="table-wrap">
+    <table class="report-table">
+      <thead><tr><th>Card No</th><th>Person</th><th>Village</th><th>Amount (₹)</th><th>Date</th><th>Note</th><th>Actions</th></tr></thead>
+      <tbody id="pay-tbody"></tbody>
+    </table>
+  </div>
+  <div id="pay-empty" class="empty-state" style="display:none"><div class="icon">💸</div><p>No payments found.</p></div>
+</section>
+
+<!-- CALENDAR -->
+<section class="page" id="page-calendar">
+  <div class="section-header">
+    <div><div class="section-title">Payment Calendar</div><div class="section-sub">Click any date to view payments</div></div>
+  </div>
+  <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">
+    <!-- Calendar card -->
+    <div class="cal-wrap" style="flex:1;min-width:280px">
+    <div class="card">
+      <div class="calendar-header">
+        <button class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Prev</button>
+        <span class="cal-month" id="cal-label"></span>
+        <button class="btn btn-ghost btn-sm" onclick="calNav(1)">Next →</button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-day-name">Sun</div><div class="cal-day-name">Mon</div><div class="cal-day-name">Tue</div>
+        <div class="cal-day-name">Wed</div><div class="cal-day-name">Thu</div><div class="cal-day-name">Fri</div>
+        <div class="cal-day-name">Sat</div>
+      </div>
+      <div class="cal-grid" id="cal-days"></div>
+      <div id="cal-legend"></div>
+    </div>
+    </div>
+    <!-- Monthly summary panel beside calendar -->
+    <div id="cal-month-summary" style="flex:0 0 220px;min-width:180px"></div>
+  </div>
+  <div class="cal-payments" id="cal-payments"></div>
+</section>
+
+<!-- EXPENSES -->
+<section class="page" id="page-expenses">
+  <div class="section-header">
+    <div><div class="section-title">Expenses</div><div class="section-sub">Petrol, tiffin, travel & other spends</div></div>
+    <button class="btn btn-primary" onclick="openAddExpense()">＋ Add Expense</button>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="stat-grid" style="margin-bottom:20px">
+    <div class="stat-card" style="border-color:var(--red)">
+      <div class="label">Total Spent (₹)</div>
+      <div class="value" id="exp-total" style="color:var(--red)">0</div>
+    </div>
+    <div class="stat-card" style="border-color:var(--border)">
+      <div class="label">This Month (₹)</div>
+      <div class="value" id="exp-month" style="color:var(--accent)">0</div>
+    </div>
+    <div class="stat-card" style="border-color:var(--border)">
+      <div class="label">Total Entries</div>
+      <div class="value" id="exp-count" style="color:var(--blue)">0</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="form-group" style="min-width:180px;flex:2">
+      <label>🔍 Search</label>
+      <input type="text" id="exp-search" placeholder="Description or category…" oninput="renderExpenses()"/>
+    </div>
+    <div class="form-group">
+      <label>🏷 Category</label>
+      <select id="exp-cat-filter" onchange="renderExpenses()">
+        <option value="">All Categories</option>
+        <option>Petrol</option>
+        <option>Tiffin / Food</option>
+        <option>Travel</option>
+        <option>Mobile / Internet</option>
+        <option>Stationery</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>📅 From</label>
+      <input type="date" id="exp-from" onchange="renderExpenses()"/>
+    </div>
+    <div class="form-group">
+      <label>📅 To</label>
+      <input type="date" id="exp-to" onchange="renderExpenses()"/>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="clearExpenseFilters()" style="align-self:flex-end;height:38px">✕ Clear</button>
+  </div>
+
+  <!-- Category breakdown -->
+  <div id="exp-breakdown" style="margin-bottom:16px"></div>
+
+  <!-- Expense list table -->
+  <div class="table-wrap">
+    <table class="report-table">
+      <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount (₹)</th><th>Actions</th></tr></thead>
+      <tbody id="exp-tbody"></tbody>
+    </table>
+  </div>
+  <div id="exp-empty" class="empty-state" style="display:none">
+    <div class="icon">🧾</div>
+    <p>No expenses yet. Click <b>＋ Add Expense</b> to record one.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- LOAN MODAL -->
+<div class="modal-overlay" id="modal-loan">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title" id="loan-modal-title">🌱 Add New Loan</div>
+
+    <!-- Auto Loan ID display -->
+    <div id="loan-id-display" style="background:var(--surface2);border:1.5px solid var(--border);
+      border-radius:var(--radius-sm);padding:8px 14px;margin-bottom:16px;
+      font-size:12px;color:var(--text2);display:flex;justify-content:space-between;align-items:center">
+      <span>Card No: <b id="loan-id-val" style="font-family:var(--mono);color:var(--blue);font-size:18px">—</b></span>
+    </div>
+
+    <!-- Section: Personal Info -->
+    <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">👤 Personal Information</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Person Name *</label><input type="text" id="f-name" placeholder="e.g. Ramesh Kumar" oninput="calcPreview()"/></div>
+      <div class="form-group"><label>Village *</label><input type="text" id="f-village" placeholder="e.g. Nallamada" oninput="calcPreview()"/></div>
+      <div class="form-group">
+        <label>Aadhar Number *</label>
+        <input type="text" id="f-aadhar" placeholder="XXXX XXXX XXXX" maxlength="14"
+          oninput="formatAadhar(this)" style="font-family:var(--mono);letter-spacing:1px"/>
+        <span id="aadhar-warn" style="font-size:11px;color:var(--red);font-weight:600;display:none">
+          ⚠️ This Aadhar already has an active loan!
+        </span>
+      </div>
+      <div class="form-group"><label>Phone Number *</label>
+        <input type="text" id="f-phone" placeholder="e.g. 9876543210" maxlength="10"
+          oninput="this.value=this.value.replace(/\D/g,'')" style="font-family:var(--mono)"/>
+      </div>
+      <div class="form-group" style="grid-column:1/-1"><label>Address</label>
+        <input type="text" id="f-address" placeholder="e.g. H.No 12, Main Road, Nallamada - 518002"/>
+      </div>
+    </div>
+
+    <!-- Section: Loan Details -->
+    <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px">💰 Loan Details</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Principal Amount (₹) *</label><input type="number" id="f-amount" placeholder="5000" oninput="calcPreview()"/></div>
+      <div class="form-group"><label>Interest Rate (%) *</label><input type="number" id="f-interest" placeholder="10" oninput="calcPreview()"/></div>
+      <div class="form-group"><label>Start Date *</label><input type="date" id="f-date"/></div>
+      <div class="form-group"><label>Duration (Weeks) *</label><input type="number" id="f-weeks" placeholder="20" oninput="calcPreview()"/></div>
+    </div>
+
+    <div class="calc-preview" id="calc-preview" style="display:none">
+      <div class="calc-item"><div class="ci-label">Total Amount</div><div class="ci-value" id="prev-total">₹0</div></div>
+      <div class="calc-item"><div class="ci-label">Suggested / Week</div><div class="ci-value" id="prev-emi">₹0</div></div>
+      <div class="calc-item"><div class="ci-label">Interest (₹)</div><div class="ci-value" id="prev-int">₹0</div></div>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-top:10px">
+      ℹ️ Weekly amount is a <b>suggestion only</b>. Payments can be recorded in any amount on any date.
+    </p>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveLoan()">✔ Save Loan</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-loan')">Cancel</button>
+    </div>
+    <input type="hidden" id="f-edit-id"/>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-overlay" id="modal-payment">
+  <div class="modal">
+    <div class="modal-title" id="pay-modal-title">💰 Record Payment</div>
+    <div class="loan-info-banner" id="pay-info-banner">
+      <div class="lib-name" id="pib-name">—</div>
+      <div class="lib-stats">
+        <div class="lib-stat">Total: <b id="pib-total">—</b></div>
+        <div class="lib-stat">Paid so far: <b id="pib-paid" style="color:var(--green)">—</b></div>
+        <div class="lib-stat">Remaining: <b id="pib-rem" style="color:var(--red)">—</b></div>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Amount Paid (₹) *</label>
+        <input type="number" id="pm-amount" placeholder="e.g. 500" oninput="checkOverpay()"/>
+      </div>
+      <div class="form-group">
+        <label>Payment Date *</label>
+        <input type="date" id="pm-date"/>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Note (optional)</label>
+        <input type="text" id="pm-note" placeholder="e.g. Paid via UPI, partial advance, cash…"/>
+      </div>
+    </div>
+    <div class="overpaid-warn" id="overpay-warn">⚠️ This exceeds the remaining balance. Save anyway?</div>
+    <div class="form-actions">
+      <button class="btn btn-green" onclick="savePayment()">✔ Save Payment</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-payment')">Cancel</button>
+    </div>
+    <input type="hidden" id="pm-loan-id"/>
+    <input type="hidden" id="pm-edit-id"/>
+  </div>
+</div>
+
+<!-- RENEW LOAN MODAL -->
+<div class="modal-overlay" id="modal-renew">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">🔄 Renew Loan</div>
+
+    <!-- Previous loan summary -->
+    <div id="renew-prev-summary" style="background:var(--green-bg);border:1.5px solid var(--green);
+      border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:20px">
+      <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">
+        ✅ Previous Loan — Fully Paid
+      </div>
+      <div style="font-weight:700;font-size:15px" id="renew-prev-name"></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;font-size:13px;color:var(--text2)">
+        <span>Amount: <b id="renew-prev-amount" style="color:var(--text);font-family:var(--mono)"></b></span>
+        <span>Interest: <b id="renew-prev-interest" style="color:var(--text)"></b></span>
+        <span>Duration: <b id="renew-prev-weeks" style="color:var(--text)"></b></span>
+        <span>Completed: <b id="renew-prev-date" style="color:var(--green)"></b></span>
+      </div>
+    </div>
+
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;padding:10px 14px;
+      background:var(--surface2);border-radius:var(--radius-sm);border-left:3px solid var(--accent)">
+      ℹ️ This creates a <b>new fresh loan</b> for the same person. The old loan is kept as history marked <b>Closed</b>.
+      All fields below are pre-filled from the previous loan — change whatever is needed.
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group"><label>Person Name *</label><input type="text" id="rn-name" placeholder="e.g. Ramesh Kumar" oninput="calcRenewPreview()"/></div>
+      <div class="form-group"><label>Village *</label><input type="text" id="rn-village" placeholder="e.g. Nallamada" oninput="calcRenewPreview()"/></div>
+      <div class="form-group"><label>New Principal Amount (₹) *</label><input type="number" id="rn-amount" placeholder="5000" oninput="calcRenewPreview()"/></div>
+      <div class="form-group"><label>Interest Rate (%) *</label><input type="number" id="rn-interest" placeholder="10" oninput="calcRenewPreview()"/></div>
+      <div class="form-group"><label>New Start Date *</label><input type="date" id="rn-date"/></div>
+      <div class="form-group"><label>Duration (Weeks) *</label><input type="number" id="rn-weeks" placeholder="20" oninput="calcRenewPreview()"/></div>
+    </div>
+
+    <div class="calc-preview" id="renew-calc-preview" style="display:none">
+      <div class="calc-item"><div class="ci-label">New Total Amount</div><div class="ci-value" id="rn-prev-total">₹0</div></div>
+      <div class="calc-item"><div class="ci-label">Suggested / Week</div><div class="ci-value" id="rn-prev-emi">₹0</div></div>
+      <div class="calc-item"><div class="ci-label">Interest (₹)</div><div class="ci-value" id="rn-prev-int">₹0</div></div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveRenewLoan()">🔄 Confirm Renewal — Create New Loan</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-renew')">Cancel</button>
+    </div>
+    <input type="hidden" id="rn-prev-loan-id"/>
+  </div>
+</div>
+
+<!-- CAPITAL SETUP MODAL -->
+<div class="modal-overlay" id="modal-capital">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">💰 Set Your Capital</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.6">
+      Enter the total amount of money you have available for lending.
+      This is used to calculate your <b>balance in hand</b> at any time.<br><br>
+      <b>Formula:</b> Balance = Capital − Given + Collected − Expenses
+    </p>
+    <div class="form-group">
+      <label>Total Capital Amount (₹) *</label>
+      <input type="number" id="cap-amount" placeholder="e.g. 500000" style="font-size:18px;font-weight:700;font-family:var(--mono)"/>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveCapital()">✔ Save Capital</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-capital')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPENSE MODAL -->
+<div class="modal-overlay" id="modal-expense">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title" id="exp-modal-title">🧾 Add Expense</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" id="ex-date"/>
+      </div>
+      <div class="form-group">
+        <label>Category *</label>
+        <select id="ex-cat">
+          <option value="">— Select —</option>
+          <option>Petrol</option>
+          <option>Tiffin / Food</option>
+          <option>Travel</option>
+          <option>Mobile / Internet</option>
+          <option>Stationery</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Description *</label>
+        <input type="text" id="ex-desc" placeholder="e.g. Petrol for bike – village visit"/>
+      </div>
+      <div class="form-group">
+        <label>Amount (₹) *</label>
+        <input type="number" id="ex-amount" placeholder="e.g. 150"/>
+      </div>
+      <div class="form-group">
+        <label>Paid By (optional)</label>
+        <input type="text" id="ex-paidby" placeholder="e.g. Self, Office"/>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveExpense()">✔ Save Expense</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-expense')">Cancel</button>
+    </div>
+    <input type="hidden" id="ex-edit-id"/>
+  </div>
+</div>
+
+    <input type="hidden" id="ex-edit-id"/>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal" style="max-width:400px;text-align:center;padding:32px 28px">
+    <div id="confirm-icon" style="font-size:48px;margin-bottom:12px">🗑️</div>
+    <div id="confirm-title" style="font-size:20px;font-weight:700;margin-bottom:8px">Are you sure?</div>
+    <div id="confirm-msg" style="font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.5"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-red" id="confirm-yes-btn" onclick="confirmYes()">🗑 Yes, Delete</button>
+      <button class="btn btn-ghost" onclick="confirmNo()" style="min-width:100px">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="bottom-nav" id="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-btn active" id="bnav-dashboard" onclick="showPage('dashboard',this);syncBottomNav('dashboard')">
+      <span class="bicon">📊</span>Home
+    </button>
+    <button class="bnav-btn" id="bnav-loans" onclick="showPage('loans',this);syncBottomNav('loans')">
+      <span class="bicon">📋</span>Loans
+    </button>
+    <button class="bnav-btn" id="bnav-payments" onclick="showPage('payments',this);syncBottomNav('payments')">
+      <span class="bicon">💳</span>Payments
+    </button>
+    <button class="bnav-btn" id="bnav-calendar" onclick="showPage('calendar',this);syncBottomNav('calendar')">
+      <span class="bicon">📅</span>Calendar
+    </button>
+    <button class="bnav-btn" id="bnav-expenses" onclick="showPage('expenses',this);syncBottomNav('expenses')">
+      <span class="bicon">🧾</span>Expenses
+    </button>
+  </div>
+</nav>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG — Change this to your server URL
+// ═══════════════════════════════════════════════
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : '/api'; // same origin when deployed
+
+// ═══════════════════════════════════════════════
+// API HELPERS
+// ═══════════════════════════════════════════════
+let _token    = localStorage.getItem('gs_token')    || '';
+let _username = localStorage.getItem('gs_username') || '';
+
+const authHeader = () => ({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token });
+
+async function api(method, path, body) {
+  try {
+    const res = await fetch(API + path, {
+      method,
+      headers: authHeader(),
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json();
+    if (res.status === 401) { doLogout(); return null; }
+    if (!res.ok) throw new Error(data.message || 'Server error');
+    return data;
+  } catch(err) {
+    toast(err.message, 'error');
+    return null;
+  }
+}
+
+const GET    = path        => api('GET',    path);
+const POST   = (path, b)  => api('POST',   path, b);
+const PUT    = (path, b)  => api('PUT',    path, b);
+const PATCH  = (path, b)  => api('PATCH',  path, b);
+const DEL    = path        => api('DELETE', path);
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+const genId    = () => 'id' + Date.now() + Math.random().toString(36).slice(2,6);
+const todayStr = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const pad      = n  => String(n).padStart(2,'0');
+const fmt      = n  => isNaN(n)?'0':parseFloat(n.toFixed(2)).toLocaleString('en-IN');
+const esc      = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const setText  = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+
+function toast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast '+(type||''); t.textContent = msg;
+  document.getElementById('toast-wrap').appendChild(t);
+  setTimeout(()=>t.remove(), 3000);
+}
+
+// ═══════════════════════════════════════════════
+// IN-MEMORY CACHE (loaded once after login)
+// ═══════════════════════════════════════════════
+let _loans = [], _payments = [], _expenses = [], _capital = 0;
+
+async function loadAll() {
+  showLoading(true);
+  try {
+    const [loans, payments, expenses, capital] = await Promise.all([
+      GET('/loans'), GET('/payments'), GET('/expenses'), GET('/capital')
+    ]);
+    _loans    = loans    || [];
+    _payments = payments || [];
+    _expenses = expenses || [];
+    _capital  = capital?.amount || 0;
+    // Normalize _id → id
+    _loans    = _loans.map(l => ({ ...l, id: l._id }));
+    _payments = _payments.map(p => ({ ...p, id: p._id, loanId: p.loanId }));
+    _expenses = _expenses.map(e => ({ ...e, id: e._id }));
+  } finally {
+    showLoading(false);
+  }
+}
+
+function showLoading(on) {
+  let el = document.getElementById('loading-bar');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loading-bar';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent2);z-index:9999;transition:opacity .3s';
+    document.body.appendChild(el);
+  }
+  el.style.opacity = on ? '1' : '0';
+}
+
+// Helpers that work on cache
+const loadLoans    = () => _loans;
+const loadPayments = () => _payments;
+const loadExpenses = () => _expenses;
+const loanPaid     = loanId => _payments.filter(p=>p.loanId===loanId||p.loanId===loanId).reduce((s,p)=>s+p.amount,0);
+
+// Format Aadhar
+function formatAadhar(input) {
+  let val = input.value.replace(/\D/g,'').slice(0,12);
+  input.value = val.replace(/(\d{4})(?=\d)/g,'$1 ').trim();
+  const editId = document.getElementById('f-edit-id').value;
+  if(val.length === 12){
+    const dup = _loans.find(l => l.aadhar===val && !l.closed && l.id!==editId);
+    document.getElementById('aadhar-warn').style.display = dup ? '' : 'none';
+  } else {
+    document.getElementById('aadhar-warn').style.display = 'none';
+  }
+}
+function formatAadharDisplay(a) {
+  if(!a) return '—';
+  return String(a).replace(/\D/g,'').replace(/(\d{4})(\d{4})(\d{4})/,'$1 $2 $3');
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function showPage(id, tab) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(tab && tab.classList.contains('nav-tab')) tab.classList.add('active');
+  syncBottomNav(id);
+  if(id==='dashboard') renderDashboard();
+  if(id==='loans')    { syncDropdowns(); renderLoans(); }
+  if(id==='payments') { syncDropdowns(); renderPaymentsPage(); }
+  if(id==='expenses') renderExpenses();
+  if(id==='calendar') renderCalendar();
+}
+
+function syncBottomNav(id) {
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  const btn = document.getElementById('bnav-'+id);
+  if(btn) btn.classList.add('active');
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o =>
+  o.addEventListener('click', function(e){
+    if(e.target===this) {
+      if(this.id==='modal-confirm') confirmNo();
+      else closeModal(this.id);
+    }
+  }));
+
+// ═══════════════════════════════════════════════
+// LOAN MODAL
+// ═══════════════════════════════════════════════
+function openAddLoan() {
+  ['f-name','f-village','f-aadhar','f-phone','f-address','f-amount','f-interest','f-weeks']
+    .forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-date').value = todayStr();
+  document.getElementById('f-edit-id').value = '';
+  document.getElementById('loan-modal-title').textContent = '🌱 Add New Loan';
+  document.getElementById('calc-preview').style.display = 'none';
+  document.getElementById('aadhar-warn').style.display = 'none';
+  const maxCard = _loans.reduce((mx,l)=>Math.max(mx,parseInt(l.cardNo)||0),0);
+  document.getElementById('loan-id-val').textContent = maxCard + 1;
+  openModal('modal-loan');
+}
+
+function openEditLoan(id) {
+  const loan = _loans.find(l=>l.id===id); if(!loan) return;
+  document.getElementById('loan-modal-title').textContent = '✏️ Edit Loan';
+  document.getElementById('f-name').value    = loan.name;
+  document.getElementById('f-village').value = loan.village;
+  document.getElementById('f-aadhar').value  = formatAadharDisplay(loan.aadhar);
+  document.getElementById('f-phone').value   = loan.phone   || '';
+  document.getElementById('f-address').value = loan.address || '';
+  document.getElementById('f-amount').value  = loan.amount;
+  document.getElementById('f-interest').value= loan.interest;
+  document.getElementById('f-date').value    = loan.startDate;
+  document.getElementById('f-weeks').value   = loan.weeks;
+  document.getElementById('f-edit-id').value = loan.id;
+  document.getElementById('aadhar-warn').style.display = 'none';
+  document.getElementById('loan-id-val').textContent = loan.cardNo ? 'Card No: ' + loan.cardNo : '—';
+  calcPreview();
+  openModal('modal-loan');
+}
+
+function calcPreview() {
+  const a = parseFloat(document.getElementById('f-amount').value)||0;
+  const r = parseFloat(document.getElementById('f-interest').value)||0;
+  const w = parseInt(document.getElementById('f-weeks').value)||0;
+  if(a>0 && w>0){
+    const intAmt = a*r/100, total = a+intAmt;
+    document.getElementById('prev-total').textContent = '₹'+fmt(total);
+    document.getElementById('prev-emi').textContent   = '₹'+fmt(total/w);
+    document.getElementById('prev-int').textContent   = '₹'+fmt(intAmt);
+    document.getElementById('calc-preview').style.display='grid';
+  } else document.getElementById('calc-preview').style.display='none';
+}
+
+async function saveLoan() {
+  const name      = document.getElementById('f-name').value.trim();
+  const village   = document.getElementById('f-village').value.trim();
+  const aadhar    = document.getElementById('f-aadhar').value.replace(/\s/g,'');
+  const phone     = document.getElementById('f-phone').value.trim();
+  const address   = document.getElementById('f-address').value.trim();
+  const amount    = parseFloat(document.getElementById('f-amount').value);
+  const interest  = parseFloat(document.getElementById('f-interest').value);
+  const startDate = document.getElementById('f-date').value;
+  const weeks     = parseInt(document.getElementById('f-weeks').value);
+  const editId    = document.getElementById('f-edit-id').value;
+
+  if(!name||!village||!aadhar||!phone||isNaN(amount)||isNaN(interest)||!startDate||isNaN(weeks)||amount<=0||weeks<=0){
+    toast('Please fill all required fields!','error'); return;
+  }
+  if(aadhar.length!==12||!/^\d{12}$/.test(aadhar)){ toast('Aadhar must be 12 digits!','error'); return; }
+  if(phone.length!==10||!/^\d{10}$/.test(phone)){ toast('Phone must be 10 digits!','error'); return; }
+
+  const body = {name,village,aadhar,phone,address,amount,interest,startDate,weeks};
+  let result;
+  if(editId){
+    result = await PUT('/loans/'+editId, body);
+    if(!result) return;
+    _loans = _loans.map(l=>l.id===editId?{...result,id:result._id}:l);
+    toast('Loan updated ✓','success');
+  } else {
+    result = await POST('/loans', body);
+    if(!result) return;
+    _loans.push({...result, id:result._id});
+    toast('Loan added ✓','success');
+  }
+  closeModal('modal-loan');
+  syncDropdowns(); renderLoans(); renderDashboard();
+}
+
+// ═══════════════════════════════════════════════
+// CONFIRM DIALOG
+// ═══════════════════════════════════════════════
+let _confirmCallback = null;
+
+function showConfirm(icon, title, msg, yesBtnLabel, callback) {
+  document.getElementById('confirm-icon').textContent    = icon;
+  document.getElementById('confirm-title').textContent   = title;
+  document.getElementById('confirm-msg').innerHTML       = msg;
+  document.getElementById('confirm-yes-btn').textContent = yesBtnLabel;
+  _confirmCallback = callback;
+  openModal('modal-confirm');
+}
+function confirmYes() {
+  closeModal('modal-confirm');
+  if(typeof _confirmCallback==='function') _confirmCallback();
+  _confirmCallback = null;
+}
+function confirmNo() { closeModal('modal-confirm'); _confirmCallback = null; }
+
+// ═══════════════════════════════════════════════
+// DELETE LOAN
+// ═══════════════════════════════════════════════
+function deleteLoan(id) {
+  const loan = _loans.find(l=>l.id===id); if(!loan) return;
+  const payCount = _payments.filter(p=>p.loanId===id).length;
+  showConfirm('🗑️','Delete Loan?',
+    `Delete loan for <b>${esc(loan.name)}</b>?<br><br>
+     Also deletes <b>${payCount} payment${payCount!==1?'s':''}</b>.<br>
+     <span style="color:var(--red);font-weight:600">Cannot be undone.</span>`,
+    '🗑 Yes, Delete',
+    async () => {
+      const res = await DEL('/loans/'+id); if(!res) return;
+      _loans    = _loans.filter(l=>l.id!==id);
+      _payments = _payments.filter(p=>p.loanId!==id);
+      toast('Loan deleted','');
+      syncDropdowns(); renderLoans(); renderDashboard();
+    }
+  );
+}
+
+// ═══════════════════════════════════════════════
+// RENEW LOAN
+// ═══════════════════════════════════════════════
+function openRenewLoan(loanId) {
+  const loan = _loans.find(l=>l.id===loanId); if(!loan) return;
+  const payments = _payments.filter(p=>p.loanId===loanId);
+  const lastPay  = payments.sort((a,b)=>(b.payDate||'').localeCompare(a.payDate||''))[0];
+
+  document.getElementById('renew-prev-name').textContent     = loan.name + ' — ' + loan.village;
+  document.getElementById('renew-prev-amount').textContent   = '₹'+fmt(loan.totalAmount);
+  document.getElementById('renew-prev-interest').textContent = loan.interest+'%';
+  document.getElementById('renew-prev-weeks').textContent    = loan.weeks+' weeks';
+  document.getElementById('renew-prev-date').textContent     = lastPay?.payDate || loan.startDate;
+
+  document.getElementById('rn-name').value     = loan.name;
+  document.getElementById('rn-village').value  = loan.village;
+  document.getElementById('rn-amount').value   = loan.amount;
+  document.getElementById('rn-interest').value = loan.interest;
+  document.getElementById('rn-weeks').value    = loan.weeks;
+  document.getElementById('rn-date').value     = todayStr();
+  document.getElementById('rn-prev-loan-id').value = loanId;
+  calcRenewPreview();
+  openModal('modal-renew');
+}
+
+function calcRenewPreview() {
+  const a=parseFloat(document.getElementById('rn-amount').value)||0;
+  const r=parseFloat(document.getElementById('rn-interest').value)||0;
+  const w=parseInt(document.getElementById('rn-weeks').value)||0;
+  if(a>0&&w>0){
+    const intAmt=a*r/100,total=a+intAmt;
+    document.getElementById('rn-prev-total').textContent='₹'+fmt(total);
+    document.getElementById('rn-prev-emi').textContent='₹'+fmt(total/w);
+    document.getElementById('rn-prev-int').textContent='₹'+fmt(intAmt);
+    document.getElementById('renew-calc-preview').style.display='grid';
+  } else document.getElementById('renew-calc-preview').style.display='none';
+}
+
+async function saveRenewLoan() {
+  const prevId    = document.getElementById('rn-prev-loan-id').value;
+  const prevLoan  = _loans.find(l=>l.id===prevId);
+  const name      = document.getElementById('rn-name').value.trim();
+  const village   = document.getElementById('rn-village').value.trim();
+  const amount    = parseFloat(document.getElementById('rn-amount').value);
+  const interest  = parseFloat(document.getElementById('rn-interest').value);
+  const startDate = document.getElementById('rn-date').value;
+  const weeks     = parseInt(document.getElementById('rn-weeks').value);
+
+  if(!name||!village||isNaN(amount)||isNaN(interest)||!startDate||isNaN(weeks)||amount<=0||weeks<=0){
+    toast('Please fill all fields!','error'); return;
+  }
+  const body = { name, village, aadhar: prevLoan?.aadhar||'', phone: prevLoan?.phone||'',
+    address: prevLoan?.address||'', amount, interest, startDate, weeks };
+  const result = await POST('/loans/'+prevId+'/renew', body);
+  if(!result) return;
+  _loans = _loans.map(l=>l.id===prevId ? {...l, closed:true} : l);
+  _loans.push({...result, id:result._id});
+  closeModal('modal-renew');
+  toast('Loan renewed ✓','success');
+  syncDropdowns(); renderLoans(); renderDashboard();
+}
+
+// ═══════════════════════════════════════════════
+// PAYMENT MODAL
+// ═══════════════════════════════════════════════
+function fillPayBanner(loanId, excludePayId) {
+  const loan = _loans.find(l=>l.id===loanId); if(!loan) return;
+  const otherPaid = _payments.filter(p=>p.loanId===loanId&&p.id!==excludePayId).reduce((s,p)=>s+p.amount,0);
+  const rem = Math.max(0, loan.totalAmount - otherPaid);
+  document.getElementById('pib-name').textContent  = loan.name+' — '+loan.village;
+  document.getElementById('pib-total').textContent = '₹'+fmt(loan.totalAmount);
+  document.getElementById('pib-paid').textContent  = '₹'+fmt(otherPaid);
+  document.getElementById('pib-rem').textContent   = '₹'+fmt(rem);
+}
+
+function openAddPayment(loanId) {
+  document.getElementById('pay-modal-title').textContent = '💰 Record Payment';
+  document.getElementById('pm-loan-id').value  = loanId;
+  document.getElementById('pm-edit-id').value  = '';
+  document.getElementById('pm-amount').value   = '';
+  document.getElementById('pm-date').value     = todayStr();
+  document.getElementById('pm-note').value     = '';
+  document.getElementById('overpay-warn').classList.remove('show');
+  fillPayBanner(loanId,'');
+  openModal('modal-payment');
+}
+
+function openEditPayment(payId) {
+  const pay = _payments.find(p=>p.id===payId); if(!pay) return;
+  document.getElementById('pay-modal-title').textContent = '✏️ Edit Payment';
+  document.getElementById('pm-loan-id').value  = pay.loanId;
+  document.getElementById('pm-edit-id').value  = payId;
+  document.getElementById('pm-amount').value   = pay.amount;
+  document.getElementById('pm-date').value     = pay.payDate;
+  document.getElementById('pm-note').value     = pay.note||'';
+  document.getElementById('overpay-warn').classList.remove('show');
+  fillPayBanner(pay.loanId, payId);
+  openModal('modal-payment');
+}
+
+function checkOverpay() {
+  const loanId  = document.getElementById('pm-loan-id').value;
+  const editId  = document.getElementById('pm-edit-id').value;
+  const entered = parseFloat(document.getElementById('pm-amount').value)||0;
+  const loan = _loans.find(l=>l.id===loanId); if(!loan) return;
+  const otherPaid = _payments.filter(p=>p.loanId===loanId&&p.id!==editId).reduce((s,p)=>s+p.amount,0);
+  document.getElementById('overpay-warn').classList.toggle('show', entered>loan.totalAmount-otherPaid);
+}
+
+async function savePayment() {
+  const loanId  = document.getElementById('pm-loan-id').value;
+  const editId  = document.getElementById('pm-edit-id').value;
+  const amount  = parseFloat(document.getElementById('pm-amount').value);
+  const payDate = document.getElementById('pm-date').value;
+  const note    = document.getElementById('pm-note').value.trim();
+
+  if(!loanId||isNaN(amount)||amount<=0||!payDate){ toast('Enter valid amount and date!','error'); return; }
+
+  if(editId) {
+    const result = await PUT('/payments/'+editId, {amount, payDate, note});
+    if(!result) return;
+    _payments = _payments.map(p=>p.id===editId?{...result,id:result._id,loanId:result.loanId}:p);
+    toast('Payment updated ✓','success');
+  } else {
+    const result = await POST('/payments', {loanId, amount, payDate, note});
+    if(!result) return;
+    _payments.push({...result, id:result._id, loanId:result.loanId});
+    toast('Payment recorded ✓','success');
+  }
+  closeModal('modal-payment');
+  renderLoans(); renderDashboard(); renderPaymentsPage();
+}
+
+function deletePayment(payId) {
+  const pay = _payments.find(p=>p.id===payId); if(!pay) return;
+  const loan = _loans.find(l=>l.id===pay.loanId);
+  showConfirm('💸','Delete Payment?',
+    `Delete payment of <b>₹${fmt(pay.amount)}</b> on <b>${pay.payDate}</b>${loan?` for <b>${esc(loan.name)}</b>`:''}?<br>
+     <span style="color:var(--red);font-weight:600">Cannot be undone.</span>`,
+    '🗑 Yes, Delete',
+    async () => {
+      const res = await DEL('/payments/'+payId); if(!res) return;
+      _payments = _payments.filter(p=>p.id!==payId);
+      toast('Payment deleted','');
+      renderLoans(); renderDashboard(); renderPaymentsPage();
+    }
+  );
+}
+
+function deleteAllPayments(loanId, loanName) {
+  const count = _payments.filter(p=>p.loanId===loanId).length;
+  if(count===0){ toast('No payments to delete',''); return; }
+  showConfirm('🧹','Delete All Payments?',
+    `Delete all <b>${count}</b> payments for <b>${esc(loanName)}</b>?<br>
+     <span style="color:var(--red);font-weight:600">Cannot be undone.</span>`,
+    '🧹 Yes, Clear All',
+    async () => {
+      const res = await DEL('/payments/loan/'+loanId); if(!res) return;
+      _payments = _payments.filter(p=>p.loanId!==loanId);
+      toast('All payments cleared','');
+      renderLoans(); renderDashboard(); renderPaymentsPage();
+    }
+  );
+}
+
+async function payFullAmount(loanId) {
+  const loan = _loans.find(l=>l.id===loanId); if(!loan) return;
+  const totalPaid = _payments.filter(p=>p.loanId===loanId).reduce((s,p)=>s+p.amount,0);
+  const remaining = Math.max(0, loan.totalAmount - totalPaid);
+  if(remaining<=0){ toast('Already fully paid!','error'); return; }
+  showConfirm('⚡','Pay Full Remaining?',
+    `Record <b>₹${fmt(remaining)}</b> as full payment for <b>${esc(loan.name)}</b>?`,
+    '⚡ Yes, Pay ₹'+fmt(remaining),
+    async () => {
+      const result = await POST('/payments',{loanId,amount:remaining,payDate:todayStr(),note:'Full remaining paid at once'});
+      if(!result) return;
+      _payments.push({...result,id:result._id,loanId:result.loanId});
+      toast('Full payment recorded ✓','success');
+      renderLoans(); renderDashboard(); renderPaymentsPage();
+    }
+  );
+}
+
+// ═══════════════════════════════════════════════
+// LOAN CARD
+// ═══════════════════════════════════════════════
+function buildLoanCard(loan) {
+  const payments = _payments.filter(p=>p.loanId===loan.id).sort((a,b)=>(a.payDate||'').localeCompare(b.payDate||''));
+  const totalPaid = payments.reduce((s,p)=>s+p.amount,0);
+  const remaining = Math.max(0, loan.totalAmount - totalPaid);
+  const pct = Math.min(100, Math.round((totalPaid/loan.totalAmount)*100));
+  const done = remaining === 0;
+
+  const payRows = payments.map((p,i)=>`
+    <div class="pay-entry">
+      <div class="pay-entry-left">
+        <span class="pay-serial">#${i+1}</span>
+        <div>
+          <span class="pay-amount">₹${fmt(p.amount)}</span>
+          <span class="pay-date">📅 ${p.payDate}</span>
+          ${p.note?`<div class="pay-note">"${esc(p.note)}"</div>`:''}
+        </div>
+      </div>
+      <div class="pay-entry-actions">
+        <button class="btn btn-sm btn-yellow" onclick="openEditPayment('${p.id}')">✏️ Edit</button>
+        <button class="btn btn-sm btn-red" onclick="deletePayment('${p.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+
+  return `<div class="card" id="card-${loan.id}" style="${loan.closed?'opacity:.75;border-color:#c8d0c0':''}">
+    <div class="card-header">
+      <div>
+        <div class="card-name">
+          ${esc(loan.name)}
+          ${loan.closed?'<span class="badge" style="background:#e8f0e0;color:#4a7a30">✓ Closed</span>':''}
+          ${done&&!loan.closed?'<span class="badge badge-green">✓ Fully Paid</span>':''}
+          ${loan.renewedFrom?'<span class="badge badge-blue">🔄 Renewed</span>':''}
+        </div>
+        <span class="card-village">${esc(loan.village)}</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:5px">
+          ${loan.cardNo?`<span style="font-size:12px;font-family:var(--mono);background:var(--blue-bg);color:var(--blue);padding:3px 10px;border-radius:20px;font-weight:700">Card No: ${loan.cardNo}</span>`:''}
+          ${loan.aadhar?`<span style="font-size:11px;color:var(--text2)">🪪 ${formatAadharDisplay(loan.aadhar)}</span>`:''}
+          ${loan.phone?`<span style="font-size:11px;color:var(--text2)">📞 ${esc(loan.phone)}</span>`:''}
+          ${loan.address?`<span style="font-size:11px;color:var(--text2)">📍 ${esc(loan.address)}</span>`:''}
+        </div>
+      </div>
+      <div class="card-actions">
+        ${!loan.closed?`<button class="btn btn-sm btn-green" onclick="openAddPayment('${loan.id}')">＋ Add Payment</button>`:''}
+        ${!loan.closed&&!done?`<button class="btn btn-sm btn-yellow" onclick="payFullAmount('${loan.id}')">⚡ Pay Full</button>`:''}
+        ${done&&!loan.closed?`<button class="btn btn-sm btn-blue" onclick="openRenewLoan('${loan.id}')">🔄 Renew</button>`:''}
+        <button class="btn btn-sm btn-ghost" onclick="openEditLoan('${loan.id}')">✏️ Edit</button>
+        <button class="btn btn-sm btn-red" onclick="deleteLoan('${loan.id}')">🗑</button>
+      </div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item"><div class="m-label">Principal</div><div class="m-value">₹${fmt(loan.amount)}</div></div>
+      <div class="meta-item"><div class="m-label">Interest</div><div class="m-value">${loan.interest}%</div></div>
+      <div class="meta-item"><div class="m-label">Total Due</div><div class="m-value">₹${fmt(loan.totalAmount)}</div></div>
+      <div class="meta-item"><div class="m-label">Weekly EMI</div><div class="m-value">₹${fmt(loan.weeklyEMI)}</div></div>
+      <div class="meta-item"><div class="m-label">Weeks</div><div class="m-value">${loan.weeks}w</div></div>
+      <div class="meta-item"><div class="m-label">Start</div><div class="m-value" style="font-size:13px">${loan.startDate}</div></div>
+    </div>
+    <div class="balance-summary">
+      <div class="bs-item total"><div class="bs-label">Total Amount</div><div class="bs-value">₹${fmt(loan.totalAmount)}</div></div>
+      <div class="bs-item paid"><div class="bs-label">Total Paid</div><div class="bs-value">₹${fmt(totalPaid)}</div></div>
+      <div class="bs-item remaining"><div class="bs-label">Remaining</div><div class="bs-value">₹${fmt(remaining)}</div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-labels"><span>${payments.length} payment${payments.length!==1?'s':''} recorded</span><span>${pct}% paid</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+    <button class="toggle-btn" id="tbtn-${loan.id}" onclick="togglePay(this)">
+      ▾ Show Payment History (${payments.length})
+    </button>
+    <div class="toggle-content" id="ph-${loan.id}" style="display:none" data-open="0">
+      ${payments.length===0
+        ?`<p style="color:var(--text2);font-size:13px;padding:8px 0">No payments yet.</p>`
+        :`<div class="pay-list">${payRows}</div>
+          <button class="btn btn-sm btn-red" style="margin-top:10px;opacity:.8" onclick="deleteAllPayments('${loan.id}','${esc(loan.name)}')">🗑 Delete All Payments</button>`}
+    </div>
+  </div>`;
+}
+
+function togglePay(btn) {
+  // Walk to the next sibling toggle-content div — avoids duplicate-id issues
+  // when the same card is rendered in both dashboard and loans page
+  const content = btn.nextElementSibling;
+  if(!content) return;
+  const isOpen = content.dataset.open === '1';
+  if(isOpen) {
+    content.style.display = 'none';
+    content.dataset.open = '0';
+    const count = content.querySelectorAll('.pay-entry').length;
+    btn.textContent = `▾ Show Payment History (${count})`;
+  } else {
+    content.style.display = 'block';
+    content.dataset.open = '1';
+    const count = content.querySelectorAll('.pay-entry').length;
+    btn.textContent = `▴ Hide Payment History (${count})`;
+  }
+}
+
+let _statusFilter = 'all';
+
+function setStatusFilter(val) {
+  _statusFilter = val;
+  ['stab-all','stab-active','stab-closed'].forEach(id=>{
+    const b=document.getElementById(id); if(b) b.classList.remove('active');
+  });
+  const active = document.getElementById('stab-'+val);
+  if(active) active.classList.add('active');
+  renderLoans();
+}
+
+function renderLoans() {
+  const search  = (document.getElementById('search-input')?.value||'').toLowerCase();
+  const village = document.getElementById('filter-village')?.value||'';
+  const from    = document.getElementById('filter-from')?.value||'';
+  const to      = document.getElementById('filter-to')?.value||'';
+  let loans = [..._loans];
+  if(search)  loans=loans.filter(l=>l.name.toLowerCase().includes(search)||String(l.cardNo||'').includes(search));
+  if(village) loans=loans.filter(l=>l.village===village);
+  if(from)    loans=loans.filter(l=>l.startDate>=from);
+  if(to)      loans=loans.filter(l=>l.startDate<=to);
+  // Status filter
+  if(_statusFilter==='active') loans=loans.filter(l=>!l.closed);
+  if(_statusFilter==='closed') loans=loans.filter(l=>l.closed);
+  const c=document.getElementById('loan-list'); if(!c) return;
+  if(loans.length===0){ c.innerHTML=`<div class="empty-state"><div class="icon">🌾</div><p>No loans found.</p></div>`; return; }
+  const active = loans.filter(l=>!l.closed).sort((a,b)=>(a.cardNo||0)-(b.cardNo||0));
+  const closed = loans.filter(l=>l.closed).sort((a,b)=>(b.cardNo||0)-(a.cardNo||0));
+  let html = active.map(buildLoanCard).join('');
+  if(closed.length>0){
+    html+=`<div style="margin:24px 0 12px;display:flex;align-items:center;gap:12px">
+      <div style="flex:1;height:1.5px;background:var(--border)"></div>
+      <span style="font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap">✓ Closed Loans (${closed.length})</span>
+      <div style="flex:1;height:1.5px;background:var(--border)"></div>
+    </div>`;
+    html+=closed.map(buildLoanCard).join('');
+  }
+  c.innerHTML=html;
+}
+
+function clearLoanFilters() {
+  ['search-input','filter-from','filter-to'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const v=document.getElementById('filter-village'); if(v)v.value='';
+  setStatusFilter('all');
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
+function renderDashboard() {
+  const activeLoans = _loans.filter(l=>!l.closed);
+  const given       = activeLoans.reduce((s,l)=>s+l.amount,0);
+  const collected   = _payments.filter(p=>activeLoans.some(l=>l.id===p.loanId)).reduce((s,p)=>s+p.amount,0);
+  const pending     = Math.max(0, activeLoans.reduce((s,l)=>s+l.totalAmount,0) - collected);
+  const totalExp    = _expenses.reduce((s,e)=>s+e.amount,0);
+  const balance     = _capital - given + collected - totalExp;
+
+  const hasCap = _capital > 0;
+  const banner = document.getElementById('capital-banner');
+  const card   = document.getElementById('overview-card');
+  if(banner) banner.style.display = hasCap?'none':'';
+  if(card)   card.style.display   = hasCap?'':'none';
+
+  if(hasCap){
+    setText('ov-capital',   '₹'+fmt(_capital));
+    setText('ov-given',     '₹'+fmt(given));
+    setText('ov-collected', '₹'+fmt(collected));
+    setText('ov-expenses',  '₹'+fmt(totalExp));
+    setText('ov-balance',   '₹'+fmt(balance));
+    setText('ov-pending',   '₹'+fmt(pending));
+    setText('ov-loans',     activeLoans.length+' loan'+(activeLoans.length!==1?'s':''));
+    const givenPct = _capital>0?Math.round((given/_capital)*100):0;
+    const collPct  = _capital>0?Math.round((collected/_capital)*100):0;
+    setText('ov-given-pct',     givenPct+'% of capital');
+    setText('ov-collected-pct', (given>0?Math.round((collected/given)*100):0)+'% of given');
+    setText('ov-expenses-pct',  (_capital>0?Math.round((totalExp/_capital)*100):0)+'% of capital');
+    setText('ov-deploy-pct',    givenPct+'% deployed');
+    const bg=document.getElementById('ov-bar-given'); if(bg)bg.style.width=Math.min(100,givenPct)+'%';
+    const bc=document.getElementById('ov-bar-collected'); if(bc)bc.style.width=Math.min(100,collPct)+'%';
+    const balEl=document.getElementById('ov-balance'); if(balEl)balEl.style.color=balance<0?'var(--red)':'var(--blue)';
+
+    // మొత్తం వడ్డీ ఖాతా — total principal + interest across all active loans
+    const vkPrincipal = activeLoans.reduce((s,l)=>s+(l.amount||0),0);
+    const vkVaddi     = activeLoans.reduce((s,l)=>s+((l.totalAmount||l.amount)-(l.amount||0)),0);
+    const vkTotal     = vkPrincipal + vkVaddi;
+    setText('ov-vk-total',     '₹'+fmt(vkTotal));
+    setText('ov-vk-principal', '₹'+fmt(vkPrincipal));
+    setText('ov-vk-vaddi',     '₹'+fmt(vkVaddi));
+  }
+
+  const recent=[..._loans].filter(l=>!l.closed).sort((a,b)=>(b.cardNo||0)-(a.cardNo||0)).slice(0,3);
+  const el=document.getElementById('dash-recent'); if(!el) return;
+  el.innerHTML=recent.length===0
+    ?`<div class="empty-state"><div class="icon">🌾</div><p>No loans yet. Click <b>+ New Loan</b>.</p></div>`
+    :recent.map(buildLoanCard).join('');
+}
+
+// ═══════════════════════════════════════════════
+// PAYMENTS PAGE
+// ═══════════════════════════════════════════════
+function renderPaymentsPage() {
+  const df=document.getElementById('pf-date')?.value||'';
+  const vf=document.getElementById('pf-village')?.value||'';
+  let pays=[..._payments];
+  if(df) pays=pays.filter(p=>(p.payDate||'')===df);
+  if(vf){ const ids=_loans.filter(l=>l.village===vf).map(l=>l.id); pays=pays.filter(p=>ids.includes(p.loanId)); }
+  pays=pays.sort((a,b)=>(b.payDate||'').localeCompare(a.payDate||''));
+  const total=pays.reduce((s,p)=>s+p.amount,0);
+  const sumEl=document.getElementById('pay-summary');
+  sumEl.innerHTML=pays.length>0?`<div class="stat-grid" style="margin-bottom:0">
+    <div class="stat-card collected"><div class="label">Payments</div><div class="value">${pays.length}</div></div>
+    <div class="stat-card collected"><div class="label">Total Collected</div><div class="value" style="font-size:20px">₹${fmt(total)}</div></div>
+  </div>`:'';
+  const tbody=document.getElementById('pay-tbody');
+  const emptyEl=document.getElementById('pay-empty');
+  if(pays.length===0){tbody.innerHTML='';emptyEl.style.display='';return;}
+  emptyEl.style.display='none';
+  tbody.innerHTML=pays.map(p=>{
+    const loan=_loans.find(l=>l.id===p.loanId);
+    return `<tr>
+      <td><span style="font-family:var(--mono);font-weight:700;background:var(--blue-bg);color:var(--blue);padding:2px 8px;border-radius:20px;font-size:12px">${loan?.cardNo||'—'}</span></td>
+      <td style="font-weight:600">${esc(loan?.name||'—')}</td>
+      <td>${esc(loan?.village||'—')}</td>
+      <td style="font-family:var(--mono);font-weight:700;color:var(--green)">₹${fmt(p.amount)}</td>
+      <td>${p.payDate}</td>
+      <td style="font-size:12px;color:var(--text2);font-style:italic">${esc(p.note||'—')}</td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-sm btn-yellow" onclick="openEditPayment('${p.id}')">✏️</button>
+        <button class="btn btn-sm btn-red" onclick="deletePayment('${p.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function clearPayFilters(){
+  const d=document.getElementById('pf-date');if(d)d.value='';
+  const v=document.getElementById('pf-village');if(v)v.value='';
+  renderPaymentsPage();
+}
+
+// ═══════════════════════════════════════════════
+// CALENDAR
+// ═══════════════════════════════════════════════
+let calY=new Date().getFullYear(),calM=new Date().getMonth(),calSel=null;
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function calNav(dir){calM+=dir;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}renderCalendar();}
+
+function renderCalendar(){
+  const collectedDates=new Set(_payments.map(p=>p.payDate).filter(Boolean));
+  const givenDates=new Set(_loans.map(l=>l.startDate).filter(Boolean));
+  const expDates=new Set(_expenses.map(e=>e.date).filter(Boolean));
+  const today=todayStr();
+  const firstDay=new Date(calY,calM,1).getDay(),daysInMonth=new Date(calY,calM+1,0).getDate();
+  document.getElementById('cal-label').textContent=`${MONTHS[calM]} ${calY}`;
+  let html='';
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${calY}-${pad(calM+1)}-${pad(d)}`;
+    const hasC=collectedDates.has(ds),hasG=givenDates.has(ds),hasE=expDates.has(ds);
+    let cls='cal-day';
+    if(hasC&&hasG)cls+=' has-both'; else if(hasC)cls+=' has-payments'; else if(hasG)cls+=' has-given';
+    if(hasE)cls+=' has-expense';
+    if(ds===today)cls+=' today';if(ds===calSel)cls+=' selected';
+    html+=`<div class="${cls}" onclick="calClick('${ds}')">${d}</div>`;
+  }
+  document.getElementById('cal-days').innerHTML=html;
+  document.getElementById('cal-legend').innerHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text2);margin-top:12px">
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block"></span>Collected</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block"></span>Loan Given</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:var(--blue);display:inline-block"></span>Both</span>
+  </div>`;
+
+  // ── వడ్డీ ఖాతా — show selected day's loans, update on click ──
+  renderVaddiKhatha(calSel);
+  if(calSel)calShowDay(calSel);
+}
+
+function renderVaddiKhatha(ds){
+  const sumEl=document.getElementById('cal-month-summary');
+  if(!sumEl) return;
+  if(!ds){
+    sumEl.innerHTML=`
+      <div class="card" style="padding:16px 18px;text-align:center">
+        <div style="font-size:22px;margin-bottom:8px">📒</div>
+        <div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px">వడ్డీ ఖాతా</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px">తేదీ ఎంచుకోండి<br><span style="font-size:11px">(Click a date on the calendar)</span></div>
+      </div>`;
+    return;
+  }
+  const dayLoans=_loans.filter(l=>l.startDate===ds);
+  const principal=dayLoans.reduce((s,l)=>s+(l.amount||0),0);
+  const vaddi    =dayLoans.reduce((s,l)=>s+((l.totalAmount||l.amount)-(l.amount||0)),0);
+  const total    =principal+vaddi;
+
+  const loanRows=dayLoans.map(l=>{
+    const lp=l.amount||0, lv=(l.totalAmount||l.amount)-lp;
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-weight:600;font-size:13px">${esc(l.name)}</span>
+        ${l.cardNo?`<span style="font-size:11px;font-family:var(--mono);background:var(--blue-bg);color:var(--blue);padding:2px 7px;border-radius:20px">Card #${l.cardNo}</span>`:''}
+      </div>
+      <div style="display:flex;gap:10px;font-size:11px;color:var(--text2)">
+        <span>అసలు: <b style="font-family:var(--mono);color:var(--text)">₹${fmt(lp)}</b></span>
+        <span>వడ్డీ: <b style="font-family:var(--mono);color:var(--accent)">₹${fmt(lv)}</b></span>
+      </div>
+    </div>`;
+  }).join('');
+
+  sumEl.innerHTML=`
+    <div class="card" style="padding:16px 18px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:22px">📒</span>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--accent)">వడ్డీ ఖాతా</div>
+          <div style="font-size:11px;color:var(--text2)">${ds}</div>
+        </div>
+      </div>
+      ${dayLoans.length===0
+        ?`<div style="font-size:12px;color:var(--text2);text-align:center;padding:16px 0">ఈ రోజు లోన్లు ఏమీ లేవు</div>`
+        :`<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;border-left:4px solid var(--accent)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;color:var(--text2)">అసలు</span>
+              <b style="font-family:var(--mono);font-size:14px;color:var(--text)">₹${fmt(principal)}</b>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;color:var(--text2)">వడ్డీ</span>
+              <b style="font-family:var(--mono);font-size:14px;color:var(--accent)">₹${fmt(vaddi)}</b>
+            </div>
+            <div style="height:1.5px;background:var(--border);margin:8px 0"></div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-size:14px;font-weight:700;color:var(--text2)">మొత్తం</span>
+              <b style="font-family:var(--mono);font-size:17px;color:var(--accent)">₹${fmt(total)}</b>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-top:10px">${dayLoans.length} LOANS</div>`
+      }
+    </div>`;
+}
+
+function calClick(ds){calSel=ds;renderCalendar();renderVaddiKhatha(ds);}
+
+function calShowDay(ds){
+  const pays=_payments.filter(p=>p.payDate===ds);
+  const givenLoans=_loans.filter(l=>l.startDate===ds);
+  const c=document.getElementById('cal-payments');if(!c)return;
+  if(pays.length===0&&givenLoans.length===0){
+    c.innerHTML=`<div class="card" style="text-align:center;color:var(--text2);padding:28px"><div style="font-size:32px">📅</div><b>${ds}</b><br><br>No activity.</div>`;return;
+  }
+  const totalC=pays.reduce((s,p)=>s+p.amount,0),totalG=givenLoans.reduce((s,l)=>s+l.amount,0);
+  let html=`<div class="section-header" style="margin-bottom:12px"><div class="section-title">📅 ${ds}</div>
+    <div style="display:flex;gap:8px">${totalG>0?`<span class="badge badge-orange">💸 Given: ₹${fmt(totalG)}</span>`:''}
+    ${totalC>0?`<span class="badge badge-green">💰 Collected: ₹${fmt(totalC)}</span>`:''}</div></div>`;
+  if(givenLoans.length>0){
+    html+=`<div class="card" style="margin-bottom:14px;border-color:var(--accent2)">
+      <div style="font-weight:700;color:var(--accent);margin-bottom:10px">💸 Loans Given</div>`;
+    givenLoans.forEach(l=>{
+      const lpaid=_payments.filter(p=>p.loanId===l.id).reduce((s,p)=>s+p.amount,0);
+      html+=`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+        <span style="font-weight:600">${esc(l.name)} <span class="badge badge-blue">Card #${l.cardNo||'—'}</span></span>
+        <span style="font-family:var(--mono);color:var(--accent)">₹${fmt(l.amount)}</span></div>`;
+    });
+    html+=`</div>`;
+  }
+  if(pays.length>0){
+    html+=`<div class="card" style="border-color:var(--green)">
+      <div style="font-weight:700;color:var(--green);margin-bottom:10px">💰 Payments Collected</div>`;
+    pays.forEach(p=>{
+      const loan=_loans.find(l=>l.id===p.loanId);
+      html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          ${loan?.cardNo?`<span style="font-family:var(--mono);font-weight:700;background:var(--blue-bg);color:var(--blue);padding:2px 8px;border-radius:20px;font-size:11px">Card #${loan.cardNo}</span>`:''}
+          <span style="font-weight:600">${esc(loan?.name||'—')}</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-family:var(--mono);font-weight:700;color:var(--green)">₹${fmt(p.amount)}</span>
+          <button class="btn btn-sm btn-yellow" style="padding:4px 8px" onclick="openEditPayment('${p.id}')">✏️</button>
+        </div></div>`;
+    });
+    html+=`</div>`;
+  }
+  c.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════════════
+const CAT_EMOJI={'Petrol':'⛽','Tiffin / Food':'🍱','Travel':'🚌','Mobile / Internet':'📱','Stationery':'📝','Other':'💼'};
+const CAT_COLOR={'Petrol':'#c0580a','Tiffin / Food':'#27ae60','Travel':'#2980b9','Mobile / Internet':'#8e44ad','Stationery':'#d35400','Other':'#7f8c8d'};
+
+function openAddExpense(){
+  document.getElementById('exp-modal-title').textContent='🧾 Add Expense';
+  ['ex-date','ex-cat','ex-desc','ex-amount','ex-paidby'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('ex-date').value=todayStr();
+  document.getElementById('ex-edit-id').value='';
+  openModal('modal-expense');
+}
+
+function openEditExpense(id){
+  const exp=_expenses.find(e=>e.id===id);if(!exp)return;
+  document.getElementById('exp-modal-title').textContent='✏️ Edit Expense';
+  document.getElementById('ex-date').value=exp.date;
+  document.getElementById('ex-cat').value=exp.category;
+  document.getElementById('ex-desc').value=exp.description;
+  document.getElementById('ex-amount').value=exp.amount;
+  document.getElementById('ex-paidby').value=exp.paidBy||'';
+  document.getElementById('ex-edit-id').value=id;
+  openModal('modal-expense');
+}
+
+async function saveExpense(){
+  const date=document.getElementById('ex-date').value;
+  const category=document.getElementById('ex-cat').value;
+  const description=document.getElementById('ex-desc').value.trim();
+  const amount=parseFloat(document.getElementById('ex-amount').value);
+  const paidBy=document.getElementById('ex-paidby').value.trim();
+  const editId=document.getElementById('ex-edit-id').value;
+  if(!date||!category||!description||isNaN(amount)||amount<=0){toast('Fill all required fields!','error');return;}
+  if(editId){
+    const result=await PUT('/expenses/'+editId,{date,category,description,amount,paidBy});
+    if(!result)return;
+    _expenses=_expenses.map(e=>e.id===editId?{...result,id:result._id}:e);
+    toast('Expense updated ✓','success');
+  } else {
+    const result=await POST('/expenses',{date,category,description,amount,paidBy});
+    if(!result)return;
+    _expenses.push({...result,id:result._id});
+    toast('Expense added ✓','success');
+  }
+  closeModal('modal-expense');renderExpenses();renderDashboard();
+}
+
+function deleteExpense(id){
+  const exp=_expenses.find(e=>e.id===id);if(!exp)return;
+  showConfirm('🧾','Delete Expense?',
+    `Delete <b>${esc(exp.description)}</b> — ₹${fmt(exp.amount)}?<br><span style="color:var(--red)">Cannot be undone.</span>`,
+    '🗑 Yes, Delete',
+    async()=>{
+      const res=await DEL('/expenses/'+id);if(!res)return;
+      _expenses=_expenses.filter(e=>e.id!==id);
+      toast('Expense deleted','');renderExpenses();renderDashboard();
+    }
+  );
+}
+
+function clearExpenseFilters(){
+  ['exp-search','exp-from','exp-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const c=document.getElementById('exp-cat-filter');if(c)c.value='';
+  renderExpenses();
+}
+
+function renderExpenses(){
+  const search=(document.getElementById('exp-search')?.value||'').toLowerCase();
+  const cat=document.getElementById('exp-cat-filter')?.value||'';
+  const from=document.getElementById('exp-from')?.value||'';
+  const to=document.getElementById('exp-to')?.value||'';
+  let exps=[..._expenses];
+  if(search)exps=exps.filter(e=>e.description.toLowerCase().includes(search)||e.category.toLowerCase().includes(search));
+  if(cat)exps=exps.filter(e=>e.category===cat);
+  if(from)exps=exps.filter(e=>e.date>=from);
+  if(to)exps=exps.filter(e=>e.date<=to);
+  exps=exps.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const thisMonth=todayStr().slice(0,7);
+  setText('exp-total','₹'+fmt(_expenses.reduce((s,e)=>s+e.amount,0)));
+  setText('exp-month','₹'+fmt(_expenses.filter(e=>(e.date||'').startsWith(thisMonth)).reduce((s,e)=>s+e.amount,0)));
+  setText('exp-count',_expenses.length);
+  const byCat={};
+  exps.forEach(e=>{if(!byCat[e.category])byCat[e.category]=0;byCat[e.category]+=e.amount;});
+  const filtTotal=exps.reduce((s,e)=>s+e.amount,0);
+  const bdEl=document.getElementById('exp-breakdown');
+  if(bdEl&&Object.keys(byCat).length>0){
+    bdEl.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">`+
+      Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a]).map(c=>{
+        const pct=Math.round((byCat[c]/filtTotal)*100);
+        return `<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">${CAT_EMOJI[c]||'💼'}</span>
+          <div><div style="font-size:11px;font-weight:700;color:${CAT_COLOR[c]||'#888'};text-transform:uppercase">${esc(c)}</div>
+          <div style="font-family:var(--mono);font-weight:700;font-size:14px">₹${fmt(byCat[c])} <span style="font-size:11px;color:var(--text2)">${pct}%</span></div></div></div>`;
+      }).join('')+
+      `<div style="background:var(--red-bg);border:1.5px solid #f5b8b0;border-radius:var(--radius-sm);padding:8px 14px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">📊</span><div><div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase">Total</div>
+        <div style="font-family:var(--mono);font-weight:700;font-size:14px;color:var(--red)">₹${fmt(filtTotal)}</div></div></div></div>`;
+  } else if(bdEl) bdEl.innerHTML='';
+  const tbody=document.getElementById('exp-tbody'),emptyEl=document.getElementById('exp-empty');
+  if(exps.length===0){if(tbody)tbody.innerHTML='';if(emptyEl)emptyEl.style.display='';return;}
+  if(emptyEl)emptyEl.style.display='none';
+  if(tbody)tbody.innerHTML=exps.map(e=>`<tr>
+    <td style="font-weight:600;white-space:nowrap">${e.date}</td>
+    <td><span style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:${CAT_COLOR[e.category]||'var(--text2)'}">
+      ${CAT_EMOJI[e.category]||'💼'} ${esc(e.category)}</span></td>
+    <td><div style="font-weight:500">${esc(e.description)}</div>${e.paidBy?`<div style="font-size:11px;color:var(--text2)">Paid by: ${esc(e.paidBy)}</div>`:''}</td>
+    <td style="font-family:var(--mono);font-weight:700;color:var(--red)">₹${fmt(e.amount)}</td>
+    <td><div style="display:flex;gap:5px">
+      <button class="btn btn-sm btn-yellow" onclick="openEditExpense('${e.id}')">✏️</button>
+      <button class="btn btn-sm btn-red" onclick="deleteExpense('${e.id}')">🗑</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+// CAPITAL
+// ═══════════════════════════════════════════════
+function openCapitalSetup(){
+  document.getElementById('cap-amount').value=_capital>0?_capital:'';
+  openModal('modal-capital');
+}
+
+async function saveCapital(){
+  const amount=parseFloat(document.getElementById('cap-amount').value);
+  if(isNaN(amount)||amount<=0){toast('Enter a valid amount!','error');return;}
+  const result=await POST('/capital',{amount});
+  if(!result)return;
+  _capital=amount;
+  closeModal('modal-capital');
+  toast('Capital set to ₹'+fmt(amount)+' ✓','success');
+  renderDashboard();
+}
+
+// ═══════════════════════════════════════════════
+// DROPDOWNS
+// ═══════════════════════════════════════════════
+function syncDropdowns(){
+  const villages=[...new Set(_loans.map(l=>l.village))].sort();
+  ['filter-village','pf-village'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    const cur=sel.value;
+    sel.innerHTML='<option value="">All Villages</option>';
+    villages.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
+    if(villages.includes(cur))sel.value=cur;
+  });
+}
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+async function initAuth(){
+  if(_token){
+    const me = await fetch(API+'/auth/me',{headers:authHeader()});
+    if(me.ok){
+      document.getElementById('login-screen').style.display='none';
+      setText('header-username','👤 '+_username);
+      return true;
+    }
+  }
+  document.getElementById('login-screen').style.display='flex';
+  return false;
+}
+
+function switchPanel(id){
+  const el=document.getElementById('panel-login');if(el)el.style.display='';
+  const err=document.getElementById('login-error');if(err)err.style.display='none';
+}
+
+function showLoginError(panelId,msg){
+  const el=document.getElementById(panelId);if(!el)return;
+  el.textContent='⚠️ '+msg;el.style.display='';
+}
+
+function togglePw(inputId,btn){
+  const inp=document.getElementById(inputId);if(!inp)return;
+  const show=inp.type==='password';inp.type=show?'text':'password';btn.textContent=show?'🙈':'👁';
+}
+
+async function doLogin(){
+  const username=document.getElementById('lg-username').value.trim();
+  const password=document.getElementById('lg-password').value;
+  if(!username||!password){showLoginError('login-error','Enter username and password.');return;}
+  const res=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+  const data=await res.json();
+  if(!res.ok){showLoginError('login-error',data.message);return;}
+  _token=data.token; _username=data.username;
+  localStorage.setItem('gs_token',_token);
+  localStorage.setItem('gs_username',_username);
+  document.getElementById('login-screen').style.display='none';
+  setText('header-username','👤 '+_username);
+  toast('Welcome back, '+_username+'! ✓','success');
+  await loadAll();
+  renderDashboard();syncDropdowns();
+}
+
+
+
+
+
+function doLogout(){
+  _token='';_username='';
+  localStorage.removeItem('gs_token');localStorage.removeItem('gs_username');
+  _loans=[];_payments=[];_expenses=[];_capital=0;
+  document.getElementById('lg-username').value='';
+  document.getElementById('lg-password').value='';
+  document.getElementById('login-screen').style.display='flex';
+  toast('Logged out','');
+}
+
+async function doChangePassword(){
+  const current=document.getElementById('cpw-current').value;
+  const newPw=document.getElementById('cpw-new').value;
+  const confirm=document.getElementById('cpw-confirm').value;
+  const errEl=document.getElementById('cpw-error'),okEl=document.getElementById('cpw-success');
+  if(errEl)errEl.style.display='none';if(okEl)okEl.style.display='none';
+  if(newPw.length<4){if(errEl){errEl.textContent='⚠️ Min 4 characters.';errEl.style.display='';}return;}
+  if(newPw!==confirm){if(errEl){errEl.textContent='⚠️ Passwords do not match.';errEl.style.display='';}return;}
+  const res=await fetch(API+'/auth/change-password',{method:'POST',headers:authHeader(),body:JSON.stringify({currentPassword:current,newPassword:newPw})});
+  const data=await res.json();
+  if(!res.ok){if(errEl){errEl.textContent='⚠️ '+data.message;errEl.style.display='';}return;}
+  ['cpw-current','cpw-new','cpw-confirm'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  if(okEl){okEl.textContent='✓ Password changed!';okEl.style.display='';}
+  setTimeout(()=>closeModal('modal-changepw'),1500);
+  toast('Password changed ✓','success');
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+(async()=>{
+  const authed = await initAuth();
+  if(authed){
+    await loadAll();
+    renderDashboard();
+    syncDropdowns();
+  }
+})();
+</script>
+</body>
+</html>
