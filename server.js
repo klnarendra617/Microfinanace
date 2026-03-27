@@ -12,6 +12,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Serve static files (index.html and any assets)
+app.use(express.static(__dirname));
+
 // ── Routes ──────────────────────────────────────
 app.use('/api/auth',     require('./routes/auth'));
 app.use('/api/loans',    require('./routes/loans'));
