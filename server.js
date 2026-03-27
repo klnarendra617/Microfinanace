@@ -7,13 +7,11 @@ const app = express();
 
 // ── Middleware ──────────────────────────────────
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: process.env.FRONTEND_URL, // must be set in Render
   credentials: true
 }));
-app.use(express.json());
 
-// Serve static files (index.html and any assets)
-app.use(express.static(__dirname));
+app.use(express.json());
 
 // ── Routes ──────────────────────────────────────
 app.use('/api/auth',     require('./routes/auth'));
@@ -23,29 +21,32 @@ app.use('/api/expenses', require('./routes/expenses'));
 app.use('/api/capital',  require('./routes/capital'));
 app.use('/api/users',    require('./routes/users'));
 
-app.get('/api/health', (req, res) =>
-  res.json({ status: 'ok', message: 'GramSeva API running ✅' })
-);
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'GramSeva API running ✅' });
+});
+
+// Root route (for testing)
+app.get('/', (req, res) => {
+  res.send('GramSeva Backend Running 🚀');
+});
 
 // ── Connect DB & Start ──────────────────────────
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
-  console.error('❌ Missing MONGO_URI. Set MONGO_URI in .env or environment variables.');
+  console.error('❌ Missing MONGO_URI. Set it in environment variables.');
   process.exit(1);
 }
 
 mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected');
-    if (process.env.VERCEL) {
-      console.log('🚀 Running on Vercel Serverless');
-    } else {
-      app.listen(PORT, () =>
-        console.log(`🚀 Server running on http://localhost:${PORT}`)
-      );
-    }
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
   })
   .catch(err => {
     console.error('❌ MongoDB error:', err.message);
