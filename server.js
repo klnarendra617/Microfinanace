@@ -6,10 +6,26 @@ require('dotenv').config();
 const app = express();
 
 // ── Middleware ──────────────────────────────────
+
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL, // must be set in Render
+  origin: function (origin, callback) {
+    if (
+      !origin || // allow Postman / direct calls
+      origin.includes("vercel.app") || // allow ALL Vercel deployments
+      origin.startsWith("http://127.0.0.1") ||
+      origin.startsWith("http://localhost")
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS blocked: " + origin));
+    }
+  },
   credentials: true
 }));
+
+// ✅ Handle preflight requests
+app.options("*", cors());
 
 app.use(express.json());
 
@@ -20,6 +36,7 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/expenses', require('./routes/expenses'));
 app.use('/api/capital',  require('./routes/capital'));
 app.use('/api/users',    require('./routes/users'));
+app.use('/api/activitylog', require('./routes/activitylog'));
 
 // Health check
 app.get('/api/health', (req, res) => {

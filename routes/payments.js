@@ -16,8 +16,8 @@ router.get('/', auth, async (req, res) => {
 // Add payment
 router.post('/', auth, async (req, res) => {
   try {
-    const { loanId, amount, payDate, note } = req.body;
-    const payment = await Payment.create({ loanId, amount, payDate, note, createdBy: req.user.id });
+    const { loanId, amount, payDate, note, paymentMode } = req.body;
+    const payment = await Payment.create({ loanId, amount, payDate, note, paymentMode: paymentMode||'Cash', createdBy: req.user.id });
     res.status(201).json(payment);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -25,10 +25,10 @@ router.post('/', auth, async (req, res) => {
 // Update payment
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { amount, payDate, note } = req.body;
+    const { amount, payDate, note, paymentMode } = req.body;
     const payment = await Payment.findOneAndUpdate(
       { _id: req.params.id, createdBy: req.user.id },
-      { amount, payDate, note }, { new: true }
+      { amount, payDate, note, paymentMode: paymentMode||'Cash' }, { new: true }
     );
     if (!payment) return res.status(404).json({ message: 'Payment not found.' });
     res.json(payment);

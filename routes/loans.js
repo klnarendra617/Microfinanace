@@ -1,15 +1,40 @@
-const router  = require('express').Router();
-const Loan    = require('../models/Loan');
-const Payment = require('../models/Payment');
-const auth    = require('../middleware/auth');
+const router     = require('express').Router();
+const Loan       = require('../models/Loan');
+const Payment    = require('../models/Payment');
+const auth       = require('../middleware/auth');
+const multer     = require('multer');
+const { cloudinary } = require('../config/cloudinary');
+const streamifier = require('streamifier');
 
-const calc = (amount, interest, weeks) => {
-  const intAmt = (amount * interest) / 100;
-  const total  = amount + intAmt;
+// ── Multer (memory storage — files go to Cloudinary, not disk) ──────────────
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max per photo
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Only image files are allowed'), false);
+  }
+});
+
+// ── Helper: upload a buffer to Cloudinary ──────────────────────────────────
+function uploadToCloudinary(buffer, folder, publicId) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, public_id: publicId, overwrite: true, resource_type: 'image' },
+      (err, result) => { if (err) reject(err); else resolve(result.secure_url); }
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+}
+
+const calc = (amount, interest, weeks, overrideTotal = 0) => {
+  const intAmt    = (amount * interest) / 100;
+  const autoTotal = amount + intAmt;
+  const total     = overrideTotal > 0 ? overrideTotal : autoTotal;
   return { totalAmount: total, weeklyEMI: Math.round((total / weeks) * 100) / 100 };
 };
 
-// GET all loans
+// ── GET all loans ────────────────────────────────────────────────────────────
 router.get('/', auth, async (req, res) => {
   try {
     const loans = await Loan.find({ createdBy: req.user.id }).sort({ cardNo: 1 });
@@ -17,20 +42,21 @@ router.get('/', auth, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// CREATE loan
+// ── CREATE loan ──────────────────────────────────────────────────────────────
 router.post('/', auth, async (req, res) => {
   try {
     const { name, village, aadhar, phone, address, amount, interest, startDate, weeks } = req.body;
 
-    // Check duplicate active aadhar
     const existing = await Loan.findOne({ aadhar, closed: false, createdBy: req.user.id });
     if (existing) return res.status(400).json({
       message: `Active loan already exists for Aadhar ${aadhar} (${existing.name})`
     });
 
-    // Auto card number
-    const last = await Loan.findOne({ createdBy: req.user.id }).sort({ cardNo: -1 });
-    const cardNo = (last?.cardNo || 0) + 1;
+    // Card number is now manually provided — validate uniqueness
+    const cardNo = parseInt(req.body.cardNo);
+    if (!cardNo || cardNo <= 0) return res.status(400).json({ message: 'Card number is required.' });
+    const cardDup = await Loan.findOne({ cardNo, createdBy: req.user.id });
+    if (cardDup) return res.status(400).json({ message: `Card No ${cardNo} is already in use by ${cardDup.name}.` });
 
     const { totalAmount, weeklyEMI } = calc(amount, interest, weeks);
     const loan = await Loan.create({
@@ -42,14 +68,60 @@ router.post('/', auth, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// UPDATE loan
+// ── UPLOAD PHOTOS  POST /api/loans/:id/photos ────────────────────────────────
+// Accepts multipart/form-data with fields: aadhar, person, house (all optional)
+router.post(
+  '/:id/photos',
+  auth,
+  upload.fields([
+    { name: 'aadhar', maxCount: 1 },
+    { name: 'person', maxCount: 1 },
+    { name: 'house',  maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const loan = await Loan.findOne({ _id: req.params.id, createdBy: req.user.id });
+      if (!loan) return res.status(404).json({ message: 'Loan not found.' });
+
+      const updates = {};
+      const folder  = `gramseva/loans/${loan._id}`;
+
+      if (req.files?.aadhar?.[0]) {
+        updates['photos.aadharUrl'] = await uploadToCloudinary(
+          req.files.aadhar[0].buffer, folder, `aadhar`
+        );
+      }
+      if (req.files?.person?.[0]) {
+        updates['photos.personUrl'] = await uploadToCloudinary(
+          req.files.person[0].buffer, folder, `person`
+        );
+      }
+      if (req.files?.house?.[0]) {
+        updates['photos.houseUrl'] = await uploadToCloudinary(
+          req.files.house[0].buffer, folder, `house`
+        );
+      }
+
+      if (Object.keys(updates).length === 0)
+        return res.status(400).json({ message: 'No photos provided.' });
+
+      const updated = await Loan.findByIdAndUpdate(
+        req.params.id, { $set: updates }, { new: true }
+      );
+      res.json({ photos: updated.photos });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+  }
+);
+
+// ── UPDATE loan ──────────────────────────────────────────────────────────────
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { name, village, aadhar, phone, address, amount, interest, startDate, weeks } = req.body;
-    const { totalAmount, weeklyEMI } = calc(amount, interest, weeks);
+    const { name, village, aadhar, phone, address, amount, interest, startDate, weeks, overrideTotal } = req.body;
+    const { totalAmount, weeklyEMI } = calc(amount, interest, weeks, overrideTotal || 0);
     const loan = await Loan.findOneAndUpdate(
       { _id: req.params.id, createdBy: req.user.id },
-      { name, village, aadhar, phone, address, amount, interest, startDate, weeks, totalAmount, weeklyEMI },
+      { name, village, aadhar: aadhar||'', phone, address, amount, interest, startDate, weeks,
+        overrideTotal: overrideTotal||0, totalAmount, weeklyEMI },
       { new: true }
     );
     if (!loan) return res.status(404).json({ message: 'Loan not found.' });
@@ -57,7 +129,7 @@ router.put('/:id', auth, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// DELETE loan + payments
+// ── DELETE loan + payments ───────────────────────────────────────────────────
 router.delete('/:id', auth, async (req, res) => {
   try {
     await Payment.deleteMany({ loanId: req.params.id });
@@ -66,7 +138,7 @@ router.delete('/:id', auth, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// CLOSE loan
+// ── CLOSE loan ───────────────────────────────────────────────────────────────
 router.patch('/:id/close', auth, async (req, res) => {
   try {
     const loan = await Loan.findOneAndUpdate(
@@ -77,18 +149,19 @@ router.patch('/:id/close', auth, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// RENEW loan
+// ── RENEW loan ───────────────────────────────────────────────────────────────
 router.post('/:id/renew', auth, async (req, res) => {
   try {
     await Loan.findOneAndUpdate({ _id: req.params.id }, { closed: true });
-    const { name, village, aadhar, phone, address, amount, interest, startDate, weeks } = req.body;
-    const { totalAmount, weeklyEMI } = calc(amount, interest, weeks);
-    const last = await Loan.findOne({ createdBy: req.user.id }).sort({ cardNo: -1 });
-    const cardNo = (last?.cardNo || 0) + 1;
+    const { name, village, aadhar, phone, address, amount, interest, startDate, weeks, overrideTotal } = req.body;
+    const { totalAmount, weeklyEMI } = calc(amount, interest, weeks, overrideTotal || 0);
+    // Use same card number as the previous (closed) loan
+    const prevLoan = await Loan.findById(req.params.id);
+    const cardNo = prevLoan?.cardNo || (() => { throw new Error('Previous loan not found'); })();
     const newLoan = await Loan.create({
-      cardNo, name, village, aadhar, phone, address,
-      amount, interest, startDate, weeks, totalAmount, weeklyEMI,
-      renewedFrom: req.params.id, createdBy: req.user.id
+      cardNo, name, village, aadhar: aadhar||'', phone, address,
+      amount, interest, startDate, weeks, overrideTotal: overrideTotal||0,
+      totalAmount, weeklyEMI, renewedFrom: req.params.id, createdBy: req.user.id
     });
     res.status(201).json(newLoan);
   } catch (err) { res.status(500).json({ message: err.message }); }

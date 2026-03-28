@@ -45,13 +45,13 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
 .nav-tab:hover:not(.active){color:var(--text);background:var(--surface2)}
 
-.main{max-width:1000px;margin:0 auto;padding:24px 16px 80px}
+.main{max-width:1000px;margin:0 auto;padding:24px 16px 80px;overflow-x:hidden}
 .page{display:none}.page.active{display:block}
 
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px;min-width:0}
 .stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
 .stat-card .label{font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
-.stat-card .value{font-size:26px;font-weight:700;font-family:var(--mono)}
+.stat-card .value{font-size:26px;font-weight:700;font-family:var(--mono);word-break:break-all}
 .stat-card.given .value{color:var(--accent)}.stat-card.collected .value{color:var(--green)}
 .stat-card.pending .value{color:var(--red)}.stat-card.loans .value{color:var(--blue)}
 
@@ -113,6 +113,14 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
 .pay-serial{background:var(--blue-bg);color:var(--blue);font-size:11px;font-weight:700;
   padding:3px 9px;border-radius:20px;white-space:nowrap}
 .pay-amount{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--green)}
+.pm-mode-btn{padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);
+  font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--text2)}
+.pm-mode-btn:hover{border-color:var(--accent);color:var(--accent)}
+.pm-mode-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pay-mode-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text2);margin-left:4px;vertical-align:middle}
+.pay-mode-badge.cash{background:#e8f5e9;color:#2a7d4f}
+.pay-mode-badge.upi{background:#e8f0ff;color:#3b5bdb}
 .pay-date{font-size:12px;color:var(--text2);margin-left:6px}
 .pay-note{font-size:12px;color:var(--text2);font-style:italic;margin-top:2px}
 .pay-entry-actions{display:flex;gap:5px;flex-shrink:0}
@@ -201,7 +209,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   .hbrand h1{font-size:15px}
   .hbrand small{font-size:9px}
   .hbrand span{font-size:20px}
-  .hdr-username{font-size:11px;padding:3px 7px}
+  .hdr-username{display:none}
   .hdr-txt{display:none} /* icon-only on mobile */
   .hdr-right{gap:4px}
 
@@ -216,7 +224,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   .main{padding:14px 10px 70px}
 
   /* Stat grid — 2 columns */
-  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;width:100%}
   .stat-card{padding:14px 12px}
   .stat-card .value{font-size:20px}
   .stat-card .label{font-size:10px}
@@ -387,6 +395,64 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   background:none;border:none;cursor:pointer;font-size:16px;color:var(--text2);padding:4px}
 .login-footer-link{font-size:13px;color:var(--blue);cursor:pointer;background:none;border:none;
   text-decoration:underline;margin-top:16px;display:block;font-family:var(--font)}
+
+/* PHOTO UPLOAD */
+.photo-upload-box{
+  display:block;position:relative;width:100%;height:130px;border:2px dashed var(--border);
+  border-radius:12px;cursor:pointer;overflow:hidden;transition:border-color .2s,background .2s;
+  background:var(--surface);
+}
+.photo-upload-box:hover{border-color:var(--accent);background:var(--surface2)}
+.photo-upload-box.has-photo{border-style:solid;border-color:var(--border)}
+.photo-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;color:var(--text2);pointer-events:none}
+.photo-remove-btn{display:none;position:absolute;top:6px;right:6px;background:rgba(192,57,43,.88);
+  color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;
+  cursor:pointer;align-items:center;justify-content:center;z-index:2;padding:0}
+.photo-upload-box.has-photo .photo-remove-btn{display:flex}
+
+/* ── Activity Log ── */
+.activity-day-group{margin-bottom:20px}
+.activity-day-label{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;
+  letter-spacing:.6px;padding:6px 0;border-bottom:1.5px solid var(--border);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px}
+.activity-item{display:flex;gap:12px;padding:10px 14px;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;
+  align-items:flex-start;transition:box-shadow .15s}
+.activity-item:hover{box-shadow:0 2px 10px rgba(100,60,20,.10)}
+.activity-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:17px;flex-shrink:0;margin-top:1px}
+.activity-icon.loan-add{background:var(--blue-bg)}
+.activity-icon.loan-edit{background:var(--yellow-bg)}
+.activity-icon.loan-delete{background:var(--red-bg)}
+.activity-icon.loan-close{background:var(--green-bg)}
+.activity-icon.loan-renew{background:var(--blue-bg)}
+.activity-icon.payment-add{background:var(--green-bg)}
+.activity-icon.payment-edit{background:var(--yellow-bg)}
+.activity-icon.payment-delete{background:var(--red-bg)}
+.activity-icon.expense-add{background:var(--red-bg)}
+.activity-icon.expense-edit{background:var(--yellow-bg)}
+.activity-icon.expense-delete{background:var(--red-bg)}
+.activity-icon.capital-set{background:var(--surface2)}
+.activity-body{flex:1;min-width:0}
+.activity-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.3}
+.activity-detail{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.5}
+.activity-detail b{color:var(--text);font-weight:600}
+.activity-time{font-size:11px;color:var(--text2);white-space:nowrap;flex-shrink:0;
+  font-family:var(--mono);margin-top:3px}
+.activity-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;
+  border-radius:10px;text-transform:uppercase;letter-spacing:.4px;margin-right:4px}
+.activity-tag.loan{background:var(--blue-bg);color:var(--blue)}
+.activity-tag.payment{background:var(--green-bg);color:var(--green)}
+.activity-tag.expense{background:var(--red-bg);color:var(--red)}
+.activity-tag.capital{background:var(--surface2);color:var(--text2)}
+.activity-tag.session{background:#f0e8ff;color:#7c3aed}
+.activity-changes{margin-top:5px;padding:6px 10px;background:var(--surface2);border-radius:6px;font-size:11px}
+.activity-change-row{display:flex;gap:6px;align-items:center;margin-bottom:2px}
+.activity-change-row:last-child{margin-bottom:0}
+.old-val{color:var(--red);text-decoration:line-through;font-family:var(--mono)}
+.new-val{color:var(--green);font-family:var(--mono);font-weight:600}
+
 </style>
 </head>
 <body>
@@ -454,6 +520,50 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   </div>
 </div>
 
+<!-- TELEGRAM ALERT SETTINGS MODAL -->
+<div class="modal-overlay" id="modal-alerts">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title">🔔 Login Alert Settings</div>
+
+    <!-- Explainer -->
+    <div style="background:var(--blue-bg);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:18px;font-size:13px;line-height:1.6;color:var(--text)">
+      <b style="color:var(--blue)">How it works:</b> Every time someone logs in with your credentials, you'll instantly receive a <b>Telegram message</b> with their device, browser, location and timestamp — even if it's you.<br><br>
+      <b style="color:var(--blue)">Setup (2 mins):</b><br>
+      1. Open Telegram → search <b>@BotFather</b> → send <code>/newbot</code> → copy the <b>Bot Token</b><br>
+      2. Search <b>@userinfobot</b> → send any message → copy your <b>Chat ID</b><br>
+      3. Paste both below and click <b>Save & Test</b>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px">
+      <label>🤖 Telegram Bot Token</label>
+      <div class="pw-wrap">
+        <input type="password" id="tg-token" class="lg-inp" style="width:100%;font-family:var(--mono);font-size:13px"
+          placeholder="123456789:ABCDefgh…"/>
+        <button class="pw-eye" type="button" onclick="togglePw('tg-token',this)">👁</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:18px">
+      <label>💬 Your Chat ID (or Group ID)</label>
+      <input type="text" id="tg-chatid" class="lg-inp" style="width:100%;font-family:var(--mono);font-size:13px"
+        placeholder="e.g. 987654321"/>
+    </div>
+
+    <!-- Status -->
+    <div id="tg-status" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600"></div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveAlertSettings()">💾 Save & Test</button>
+      <button class="btn btn-ghost" onclick="clearAlertSettings()" style="color:var(--red)">🗑 Clear / Disable</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-alerts')">Cancel</button>
+    </div>
+
+    <div style="margin-top:14px;font-size:11px;color:var(--text2);line-height:1.5">
+      ⚠️ Your token is stored only in <b>this browser's localStorage</b> — never sent to any server except Telegram.
+      If you clear browser data, you'll need to re-enter it.
+    </div>
+  </div>
+</div>
+
 <!-- HEADER -->
 <header class="header">
   <div class="hbrand">
@@ -464,7 +574,8 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
     <span id="header-username" class="hdr-username"></span>
     <button class="btn btn-sm hdr-btn" onclick="openAddLoan()">＋ <span class="hdr-txt">New Loan</span></button>
     <button class="btn btn-sm hdr-btn" onclick="openModal('modal-changepw')" title="Change Password">🔑 <span class="hdr-txt">Password</span></button>
-    <button class="btn btn-sm hdr-btn hdr-logout" onclick="doLogout()" title="Logout">⏻ <span class="hdr-txt">Logout</span></button>
+    <button class="btn btn-sm hdr-btn" onclick="openAlertSettings()" title="Login Alert Settings" id="hdr-alert-btn">🔔 <span class="hdr-txt">Alerts</span></button>
+    <button class="btn btn-sm hdr-btn hdr-logout" onclick="doLogout()" title="Logout">🔓 <span class="hdr-txt">Logout</span></button>
   </div>
 </header>
 
@@ -474,6 +585,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   <button class="nav-tab" onclick="showPage('payments',this)">💳 Payments</button>
   <button class="nav-tab" onclick="showPage('calendar',this)">📅 Calendar</button>
   <button class="nav-tab" onclick="showPage('expenses',this)">🧾 Expenses</button>
+  <button class="nav-tab" onclick="showPage('activitylog',this)">📜 Activity Log</button>
 </nav>
 
 <main class="main">
@@ -744,6 +856,32 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   </div>
 </section>
 
+<!-- ACTIVITY LOG -->
+<section class="page" id="page-activitylog">
+  <div class="section-header" style="margin-bottom:16px">
+    <div>
+      <div class="section-title">📜 Activity Log</div>
+      <div class="section-sub">Complete audit trail — every action recorded</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <select id="log-filter-type" class="form-group" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface)" onchange="renderActivityLog()">
+        <option value="">All Activities</option>
+        <option value="loan">Loans</option>
+        <option value="payment">Payments</option>
+        <option value="expense">Expenses</option>
+        <option value="capital">Capital</option>
+        <option value="session">🔐 Login Sessions</option>
+      </select>
+      <input type="date" id="log-filter-date" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface)" oninput="renderActivityLog()" placeholder="Filter by date"/>
+    </div>
+  </div>
+  <div id="activity-log-list"></div>
+  <div id="activity-log-empty" class="empty-state" style="display:none">
+    <div class="icon">📜</div>
+    <p>No activity recorded yet. Actions you take will appear here.</p>
+  </div>
+</section>
+
 </main>
 
 <!-- LOAN MODAL -->
@@ -751,11 +889,14 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   <div class="modal" style="max-width:640px">
     <div class="modal-title" id="loan-modal-title">🌱 Add New Loan</div>
 
-    <!-- Auto Loan ID display -->
-    <div id="loan-id-display" style="background:var(--surface2);border:1.5px solid var(--border);
-      border-radius:var(--radius-sm);padding:8px 14px;margin-bottom:16px;
-      font-size:12px;color:var(--text2);display:flex;justify-content:space-between;align-items:center">
-      <span>Card No: <b id="loan-id-val" style="font-family:var(--mono);color:var(--blue);font-size:18px">—</b></span>
+    <!-- Manual Card Number input -->
+    <div style="background:var(--blue-bg);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap">🪪 Card No *</span>
+      <input type="number" id="f-card-no" placeholder="Enter unique card number" min="1"
+        style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--blue);border:1.5px solid var(--blue);
+        border-radius:6px;padding:4px 10px;background:#fff;width:100%;max-width:200px" oninput="checkCardNo()"/>
+      <span id="card-no-warn" style="font-size:11px;color:var(--red);font-weight:600;display:none">⚠️ Already in use!</span>
+      <span id="card-no-ok" style="font-size:11px;color:var(--green);font-weight:600;display:none">✓ Available</span>
     </div>
 
     <!-- Section: Personal Info -->
@@ -764,8 +905,8 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
       <div class="form-group"><label>Person Name *</label><input type="text" id="f-name" placeholder="e.g. Ramesh Kumar" oninput="calcPreview()"/></div>
       <div class="form-group"><label>Village *</label><input type="text" id="f-village" placeholder="e.g. Nallamada" oninput="calcPreview()"/></div>
       <div class="form-group">
-        <label>Aadhar Number *</label>
-        <input type="text" id="f-aadhar" placeholder="XXXX XXXX XXXX" maxlength="14"
+        <label>Aadhar Number <span style="color:var(--text2);font-weight:400">(optional)</span></label>
+        <input type="text" id="f-aadhar" placeholder="XXXX XXXX XXXX (optional)" maxlength="14"
           oninput="formatAadhar(this)" style="font-family:var(--mono);letter-spacing:1px"/>
         <span id="aadhar-warn" style="font-size:11px;color:var(--red);font-weight:600;display:none">
           ⚠️ This Aadhar already has an active loan!
@@ -784,9 +925,28 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
     <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px">💰 Loan Details</div>
     <div class="form-grid">
       <div class="form-group"><label>Principal Amount (₹) *</label><input type="number" id="f-amount" placeholder="5000" oninput="calcPreview()"/></div>
-      <div class="form-group"><label>Interest Rate (%) *</label><input type="number" id="f-interest" placeholder="10" oninput="calcPreview()"/></div>
+      <div class="form-group">
+        <label>Interest Rate (%) *
+          <span id="f-interest-auto-badge" style="display:none;font-size:10px;font-weight:600;color:var(--green);background:var(--green-bg);padding:1px 6px;border-radius:10px;margin-left:4px">auto</span>
+        </label>
+        <input type="number" id="f-interest" placeholder="10" step="0.01" oninput="onInterestInput()" style="transition:background .2s"/>
+        <span id="f-interest-hint" style="font-size:10px;color:var(--text2);margin-top:2px">Fill Amount to Pay below to auto-calculate</span>
+      </div>
       <div class="form-group"><label>Start Date *</label><input type="date" id="f-date"/></div>
-      <div class="form-group"><label>Duration (Weeks) *</label><input type="number" id="f-weeks" placeholder="20" oninput="calcPreview()"/></div>
+      <div class="form-group"><label>Duration (Weeks) *</label>
+        <select id="f-weeks" onchange="calcPreview()" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface)">
+          <option value="">Select weeks</option>
+          <option value="9">9 Weeks</option>
+          <option value="21">21 Weeks</option>
+          <option value="25">25 Weeks</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Amount to Pay (₹) <span style="color:var(--text2);font-weight:400;font-size:10px">auto-calculates interest %</span></label>
+        <input type="number" id="f-total-override" placeholder="Auto-calculated from interest %" oninput="onOverrideInput()"
+          style="border-color:var(--accent2)" title="Enter total to pay — interest % will be auto-calculated"/>
+        <span style="font-size:10px;color:var(--text2);margin-top:2px">Fill this OR Interest Rate — they update each other</span>
+      </div>
     </div>
 
     <div class="calc-preview" id="calc-preview" style="display:none">
@@ -797,6 +957,57 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
     <p style="font-size:12px;color:var(--text2);margin-top:10px">
       ℹ️ Weekly amount is a <b>suggestion only</b>. Payments can be recorded in any amount on any date.
     </p>
+    <!-- Section: Photos -->
+    <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px">📷 Photos</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:4px">
+
+      <!-- Aadhar Photo -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🪪 Aadhar Card</div>
+        <label class="photo-upload-box" id="box-aadhar" onclick="document.getElementById('f-photo-aadhar').click()">
+          <img id="prev-aadhar" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:10px"/>
+          <div class="photo-placeholder" id="ph-aadhar">
+            <div style="font-size:28px">🪪</div>
+            <div style="font-size:12px;font-weight:600;margin-top:6px">Upload Aadhar</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:2px">JPG / PNG</div>
+          </div>
+          <button class="photo-remove-btn" id="rm-aadhar" onclick="removePhoto(event,'aadhar')" title="Remove">✕</button>
+        </label>
+        <input type="file" id="f-photo-aadhar" accept="image/*" style="display:none" onchange="previewPhoto(this,'aadhar')"/>
+      </div>
+
+      <!-- Person Photo -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">👤 Person Photo</div>
+        <label class="photo-upload-box" id="box-person" onclick="document.getElementById('f-photo-person').click()">
+          <img id="prev-person" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:10px"/>
+          <div class="photo-placeholder" id="ph-person">
+            <div style="font-size:28px">👤</div>
+            <div style="font-size:12px;font-weight:600;margin-top:6px">Upload Photo</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:2px">JPG / PNG</div>
+          </div>
+          <button class="photo-remove-btn" id="rm-person" onclick="removePhoto(event,'person')" title="Remove">✕</button>
+        </label>
+        <input type="file" id="f-photo-person" accept="image/*" style="display:none" onchange="previewPhoto(this,'person')"/>
+      </div>
+
+      <!-- House Photo -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🏠 House Photo</div>
+        <label class="photo-upload-box" id="box-house" onclick="document.getElementById('f-photo-house').click()">
+          <img id="prev-house" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:10px"/>
+          <div class="photo-placeholder" id="ph-house">
+            <div style="font-size:28px">🏠</div>
+            <div style="font-size:12px;font-weight:600;margin-top:6px">Upload Photo</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:2px">JPG / PNG</div>
+          </div>
+          <button class="photo-remove-btn" id="rm-house" onclick="removePhoto(event,'house')" title="Remove">✕</button>
+        </label>
+        <input type="file" id="f-photo-house" accept="image/*" style="display:none" onchange="previewPhoto(this,'house')"/>
+      </div>
+
+    </div>
+
     <div class="form-actions">
       <button class="btn btn-primary" onclick="saveLoan()">✔ Save Loan</button>
       <button class="btn btn-ghost" onclick="closeModal('modal-loan')">Cancel</button>
@@ -827,8 +1038,19 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
         <input type="date" id="pm-date"/>
       </div>
       <div class="form-group" style="grid-column:1/-1">
+        <label>Payment Mode *</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px" id="pm-mode-btns">
+          <button type="button" class="pm-mode-btn active" data-mode="Cash"     onclick="selectPayMode(this)">💵 Cash</button>
+          <button type="button" class="pm-mode-btn"        data-mode="PhonePe"  onclick="selectPayMode(this)">🟣 PhonePe</button>
+          <button type="button" class="pm-mode-btn"        data-mode="GPay"     onclick="selectPayMode(this)">🔵 GPay</button>
+          <button type="button" class="pm-mode-btn"        data-mode="Paytm"    onclick="selectPayMode(this)">🔷 Paytm</button>
+          <button type="button" class="pm-mode-btn"        data-mode="Other UPI" onclick="selectPayMode(this)">📲 Other UPI</button>
+        </div>
+        <input type="hidden" id="pm-mode" value="Cash"/>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
         <label>Note (optional)</label>
-        <input type="text" id="pm-note" placeholder="e.g. Paid via UPI, partial advance, cash…"/>
+        <input type="text" id="pm-note" placeholder="e.g. partial advance, week 3…"/>
       </div>
     </div>
     <div class="overpaid-warn" id="overpay-warn">⚠️ This exceeds the remaining balance. Save anyway?</div>
@@ -853,6 +1075,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
         ✅ Previous Loan — Fully Paid
       </div>
       <div style="font-weight:700;font-size:15px" id="renew-prev-name"></div>
+      <div style="margin-top:4px;font-size:13px;color:var(--blue);font-family:var(--mono);font-weight:700">🪪 Card No: <span id="renew-prev-cardno">—</span> <span style="font-size:10px;color:var(--green);font-weight:600">(kept same)</span></div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;font-size:13px;color:var(--text2)">
         <span>Amount: <b id="renew-prev-amount" style="color:var(--text);font-family:var(--mono)"></b></span>
         <span>Interest: <b id="renew-prev-interest" style="color:var(--text)"></b></span>
@@ -873,7 +1096,14 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
       <div class="form-group"><label>New Principal Amount (₹) *</label><input type="number" id="rn-amount" placeholder="5000" oninput="calcRenewPreview()"/></div>
       <div class="form-group"><label>Interest Rate (%) *</label><input type="number" id="rn-interest" placeholder="10" oninput="calcRenewPreview()"/></div>
       <div class="form-group"><label>New Start Date *</label><input type="date" id="rn-date"/></div>
-      <div class="form-group"><label>Duration (Weeks) *</label><input type="number" id="rn-weeks" placeholder="20" oninput="calcRenewPreview()"/></div>
+      <div class="form-group"><label>Duration (Weeks) *</label>
+        <select id="rn-weeks" onchange="calcRenewPreview()" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface)">
+          <option value="">Select weeks</option>
+          <option value="9">9 Weeks</option>
+          <option value="21">21 Weeks</option>
+          <option value="25">25 Weeks</option>
+        </select>
+      </div>
     </div>
 
     <div class="calc-preview" id="renew-calc-preview" style="display:none">
@@ -986,6 +1216,9 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
     <button class="bnav-btn" id="bnav-expenses" onclick="showPage('expenses',this);syncBottomNav('expenses')">
       <span class="bicon">🧾</span>Expenses
     </button>
+    <button class="bnav-btn" id="bnav-activitylog" onclick="showPage('activitylog',this);syncBottomNav('activitylog')">
+      <span class="bicon">📜</span>Log
+    </button>
   </div>
 </nav>
 
@@ -997,7 +1230,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
 // ═══════════════════════════════════════════════
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
-  : '/api'; // same origin when deployed
+  : 'https://microfinanace.onrender.com/api';
 
 // ═══════════════════════════════════════════════
 // API HELPERS
@@ -1005,7 +1238,9 @@ const API = window.location.hostname === 'localhost' || window.location.hostname
 let _token    = localStorage.getItem('gs_token')    || '';
 let _username = localStorage.getItem('gs_username') || '';
 
-const authHeader = () => ({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token });
+const authHeader = (json = true) => json
+  ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _token }
+  : { 'Authorization': 'Bearer ' + _token };
 
 async function api(method, path, body) {
   try {
@@ -1119,6 +1354,7 @@ function showPage(id, tab) {
   if(id==='payments') { syncDropdowns(); renderPaymentsPage(); }
   if(id==='expenses') renderExpenses();
   if(id==='calendar') renderCalendar();
+  if(id==='activitylog') renderActivityLog();
 }
 
 function syncBottomNav(id) {
@@ -1141,15 +1377,19 @@ document.querySelectorAll('.modal-overlay').forEach(o =>
 // LOAN MODAL
 // ═══════════════════════════════════════════════
 function openAddLoan() {
-  ['f-name','f-village','f-aadhar','f-phone','f-address','f-amount','f-interest','f-weeks']
-    .forEach(id=>document.getElementById(id).value='');
+  ['f-name','f-village','f-aadhar','f-phone','f-address','f-amount','f-interest','f-total-override','f-card-no']
+    .forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.style.background='';}});
+  const wkSel=document.getElementById('f-weeks');if(wkSel)wkSel.value='';
+  document.getElementById('card-no-warn').style.display='none';
+  document.getElementById('card-no-ok').style.display='none';
+  const cnEl2=document.getElementById('f-card-no');if(cnEl2){cnEl2.readOnly=false;cnEl2.style.opacity='1';cnEl2.title='';}
   document.getElementById('f-date').value = todayStr();
   document.getElementById('f-edit-id').value = '';
   document.getElementById('loan-modal-title').textContent = '🌱 Add New Loan';
   document.getElementById('calc-preview').style.display = 'none';
   document.getElementById('aadhar-warn').style.display = 'none';
-  const maxCard = _loans.reduce((mx,l)=>Math.max(mx,parseInt(l.cardNo)||0),0);
-  document.getElementById('loan-id-val').textContent = maxCard + 1;
+  // card no entered manually via f-card-no input
+  clearAllPhotos();
   openModal('modal-loan');
 }
 
@@ -1164,24 +1404,91 @@ function openEditLoan(id) {
   document.getElementById('f-amount').value  = loan.amount;
   document.getElementById('f-interest').value= loan.interest;
   document.getElementById('f-date').value    = loan.startDate;
-  document.getElementById('f-weeks').value   = loan.weeks;
+  const wkEl = document.getElementById('f-weeks'); if(wkEl) wkEl.value = loan.weeks;
+  const cnEl = document.getElementById('f-card-no'); if(cnEl){cnEl.value=loan.cardNo||'';cnEl.readOnly=true;cnEl.style.opacity='.6';cnEl.title='Card number cannot be changed after creation';}
+  document.getElementById('card-no-warn').style.display='none';
+  document.getElementById('card-no-ok').style.display='none';
+  const ovEl = document.getElementById('f-total-override');
+  if(ovEl){ ovEl.value = loan.overrideTotal||''; ovEl.style.background = loan.overrideTotal>0?'var(--yellow-bg)':''; }
   document.getElementById('f-edit-id').value = loan.id;
   document.getElementById('aadhar-warn').style.display = 'none';
-  document.getElementById('loan-id-val').textContent = loan.cardNo ? 'Card No: ' + loan.cardNo : '—';
+  // card no shown in f-card-no input (read-only in edit mode)
+  // Reset auto-calc visual indicators on edit open
+  const ibadge = document.getElementById('f-interest-auto-badge');
+  const ihint  = document.getElementById('f-interest-hint');
+  const iEl2   = document.getElementById('f-interest');
+  if(ibadge) ibadge.style.display = 'none';
+  if(iEl2)   iEl2.style.background = '';
+  if(ihint)  ihint.textContent = loan.overrideTotal > 0
+    ? '₹'+fmt(loan.overrideTotal - loan.amount)+' interest (from override)'
+    : 'Fill Amount to Pay above to auto-calculate';
   calcPreview();
+  loadPhotosForLoan(loan);
   openModal('modal-loan');
+}
+
+// Called when user edits Interest Rate manually → clear override, recalc
+function onInterestInput() {
+  const overrideEl = document.getElementById('f-total-override');
+  const badge      = document.getElementById('f-interest-auto-badge');
+  const interestEl = document.getElementById('f-interest');
+  // Clear override so interest rate drives the total
+  if(overrideEl) { overrideEl.value = ''; overrideEl.style.background = ''; }
+  if(badge)      badge.style.display = 'none';
+  if(interestEl) interestEl.style.background = '';
+  calcPreview();
+}
+
+// Called when user edits Amount to Pay (override) → auto-calculate interest %
+function onOverrideInput() {
+  const a          = parseFloat(document.getElementById('f-amount').value)||0;
+  const overrideEl = document.getElementById('f-total-override');
+  const interestEl = document.getElementById('f-interest');
+  const badge      = document.getElementById('f-interest-auto-badge');
+  const hint       = document.getElementById('f-interest-hint');
+  const override   = overrideEl ? parseFloat(overrideEl.value)||0 : 0;
+
+  if(a > 0 && override > 0 && override >= a) {
+    // Auto-calculate interest rate from principal + total
+    const interestAmt  = override - a;
+    const interestRate = Math.round((interestAmt / a) * 10000) / 100; // 2 decimal places
+    if(interestEl) {
+      interestEl.value      = interestRate;
+      interestEl.style.background = 'var(--green-bg)';
+    }
+    if(badge) badge.style.display = 'inline';
+    if(hint)  hint.textContent    = `₹${fmt(interestAmt)} interest auto-calculated`;
+  } else if(override > 0 && override < a) {
+    // Total less than principal — invalid
+    if(interestEl) { interestEl.value = ''; interestEl.style.background = 'var(--red-bg)'; }
+    if(badge) badge.style.display = 'none';
+    if(hint)  hint.textContent = '⚠️ Amount to Pay must be ≥ Principal';
+  } else {
+    // Override cleared — reset interest field highlight
+    if(interestEl) interestEl.style.background = '';
+    if(badge) badge.style.display = 'none';
+    if(hint)  hint.textContent = 'Fill Amount to Pay above to auto-calculate';
+  }
+  calcPreview();
 }
 
 function calcPreview() {
   const a = parseFloat(document.getElementById('f-amount').value)||0;
   const r = parseFloat(document.getElementById('f-interest').value)||0;
-  const w = parseInt(document.getElementById('f-weeks').value)||0;
+  const w = parseInt(document.getElementById('f-weeks').value)||0; // select
+  const overrideEl = document.getElementById('f-total-override');
+  const override = overrideEl ? parseFloat(overrideEl.value)||0 : 0;
   if(a>0 && w>0){
-    const intAmt = a*r/100, total = a+intAmt;
+    const intAmt   = a*r/100;
+    const autoTotal = a + intAmt;
+    const total    = override > 0 ? override : autoTotal;
+    const dispInt  = override > 0 ? (override - a) : intAmt;
     document.getElementById('prev-total').textContent = '₹'+fmt(total);
     document.getElementById('prev-emi').textContent   = '₹'+fmt(total/w);
-    document.getElementById('prev-int').textContent   = '₹'+fmt(intAmt);
+    document.getElementById('prev-int').textContent   = '₹'+fmt(dispInt);
     document.getElementById('calc-preview').style.display='grid';
+    // Highlight override field if active
+    if(overrideEl) overrideEl.style.background = override>0 ? 'var(--yellow-bg)' : '';
   } else document.getElementById('calc-preview').style.display='none';
 }
 
@@ -1197,27 +1504,165 @@ async function saveLoan() {
   const weeks     = parseInt(document.getElementById('f-weeks').value);
   const editId    = document.getElementById('f-edit-id').value;
 
-  if(!name||!village||!aadhar||!phone||isNaN(amount)||isNaN(interest)||!startDate||isNaN(weeks)||amount<=0||weeks<=0){
+  if(!name||!village||!phone||isNaN(amount)||isNaN(interest)||!startDate||isNaN(weeks)||amount<=0||weeks<=0){
     toast('Please fill all required fields!','error'); return;
   }
-  if(aadhar.length!==12||!/^\d{12}$/.test(aadhar)){ toast('Aadhar must be 12 digits!','error'); return; }
+  if(aadhar && (aadhar.length!==12||!/^\d{12}$/.test(aadhar))){ toast('Aadhar must be 12 digits!','error'); return; }
   if(phone.length!==10||!/^\d{10}$/.test(phone)){ toast('Phone must be 10 digits!','error'); return; }
 
-  const body = {name,village,aadhar,phone,address,amount,interest,startDate,weeks};
+  // Use override total if provided, else auto-calculate
+  const overrideEl = document.getElementById('f-total-override');
+  const overrideTotal = overrideEl ? parseFloat(overrideEl.value)||0 : 0;
+
+  const cardNoEl = document.getElementById('f-card-no');
+  const cardNo = cardNoEl && !cardNoEl.readOnly ? parseInt(cardNoEl.value)||null : null;
+  if(!editId && !cardNo){ toast('Enter a card number!','error'); return; }
+  if(!editId){
+    const dup = _loans.find(l=>l.cardNo===cardNo);
+    if(dup){ toast('Card No '+cardNo+' is already in use by '+dup.name+'!','error'); return; }
+  }
+  const body = {name,village,aadhar,phone,address,amount,interest,startDate,weeks,overrideTotal,cardNo:cardNo||undefined};
   let result;
   if(editId){
+    const prevLoan = _loans.find(l=>l.id===editId);
     result = await PUT('/loans/'+editId, body);
     if(!result) return;
+    const loanChanges = [];
+    if(prevLoan){
+      if(prevLoan.name!==name) loanChanges.push({field:'Name',old:prevLoan.name,newVal:name});
+      if(prevLoan.village!==village) loanChanges.push({field:'Village',old:prevLoan.village,newVal:village});
+      if(prevLoan.amount!==amount) loanChanges.push({field:'Principal',old:'₹'+fmt(prevLoan.amount),newVal:'₹'+fmt(amount)});
+      if(prevLoan.interest!==interest) loanChanges.push({field:'Interest',old:prevLoan.interest+'%',newVal:interest+'%'});
+      if(prevLoan.weeks!==weeks) loanChanges.push({field:'Weeks',old:prevLoan.weeks+'w',newVal:weeks+'w'});
+      if(prevLoan.totalAmount!==result.totalAmount) loanChanges.push({field:'Total Due',old:'₹'+fmt(prevLoan.totalAmount),newVal:'₹'+fmt(result.totalAmount)});
+      if((prevLoan.phone||'')!==(phone||'')) loanChanges.push({field:'Phone',old:prevLoan.phone||'—',newVal:phone||'—'});
+      if((prevLoan.address||'')!==(address||'')) loanChanges.push({field:'Address',old:prevLoan.address||'—',newVal:address||'—'});
+    }
     _loans = _loans.map(l=>l.id===editId?{...result,id:result._id}:l);
+    logActivity('loan','edit',
+      'Edited Loan — '+name+' (Card No: '+(prevLoan?.cardNo||'?')+')',
+      '<b>'+name+'</b> from <b>'+village+'</b> | Total Due: <b>₹'+fmt(result.totalAmount)+'</b>',
+      loanChanges
+    );
     toast('Loan updated ✓','success');
   } else {
     result = await POST('/loans', body);
     if(!result) return;
     _loans.push({...result, id:result._id});
+    logActivity('loan','add',
+      'New Loan Added — '+name+' (Card No: '+cardNo+')',
+      '<b>'+name+'</b> from <b>'+village+'</b> | Principal: <b>₹'+fmt(amount)+'</b> | Interest: <b>'+interest+'%</b> | Total Due: <b>₹'+fmt(result.totalAmount)+'</b> | Weekly EMI: <b>₹'+fmt(result.weeklyEMI)+'</b> | Duration: <b>'+weeks+' weeks</b> | Start: <b>'+startDate+'</b>'+(aadhar?' | Aadhar: '+formatAadharDisplay(aadhar):'')+(phone?' | Phone: <b>'+phone+'</b>':'')+(address?' | Address: '+address:'')
+    );
     toast('Loan added ✓','success');
   }
+  // Upload photos to Cloudinary via backend
+  const savedId = editId || (result && (result._id || result.id));
+  if (savedId) await uploadPhotosForLoan(savedId);
   closeModal('modal-loan');
+  clearAllPhotos();
   syncDropdowns(); renderLoans(); renderDashboard();
+}
+
+// ═══════════════════════════════════════════════
+// PHOTO UPLOADS  (Cloudinary via backend)
+// ═══════════════════════════════════════════════
+const PHOTO_KEYS = ['aadhar','person','house'];
+
+function previewPhoto(input, key) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('prev-' + key);
+    const ph  = document.getElementById('ph-' + key);
+    const box = document.getElementById('box-' + key);
+    if (img) { img.src = e.target.result; img.style.display = 'block'; }
+    if (ph)  ph.style.display = 'none';
+    if (box) box.classList.add('has-photo');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(e, key) {
+  e.stopPropagation();
+  const img   = document.getElementById('prev-' + key);
+  const ph    = document.getElementById('ph-' + key);
+  const box   = document.getElementById('box-' + key);
+  const input = document.getElementById('f-photo-' + key);
+  if (img)   { img.src = ''; img.style.display = 'none'; }
+  if (ph)    ph.style.display = '';
+  if (box)   box.classList.remove('has-photo');
+  if (input) input.value = '';
+}
+
+function clearAllPhotos() {
+  PHOTO_KEYS.forEach(k => {
+    const img   = document.getElementById('prev-' + k);
+    const ph    = document.getElementById('ph-' + k);
+    const box   = document.getElementById('box-' + k);
+    const input = document.getElementById('f-photo-' + k);
+    if (img)   { img.src = ''; img.style.display = 'none'; }
+    if (ph)    ph.style.display = '';
+    if (box)   box.classList.remove('has-photo');
+    if (input) input.value = '';
+  });
+}
+
+// Load Cloudinary URLs returned from Atlas into the photo boxes
+function loadPhotosForLoan(loan) {
+  const map = {
+    aadhar: loan.photos?.aadharUrl || '',
+    person: loan.photos?.personUrl || '',
+    house:  loan.photos?.houseUrl  || '',
+  };
+  PHOTO_KEYS.forEach(k => {
+    const img = document.getElementById('prev-' + k);
+    const ph  = document.getElementById('ph-' + k);
+    const box = document.getElementById('box-' + k);
+    if (map[k] && img) {
+      img.src = map[k]; img.style.display = 'block';
+      if (ph)  ph.style.display = 'none';
+      if (box) box.classList.add('has-photo');
+    } else {
+      if (img) { img.src = ''; img.style.display = 'none'; }
+      if (ph)  ph.style.display = '';
+      if (box) box.classList.remove('has-photo');
+    }
+  });
+}
+
+// Upload any selected photo files to backend → Cloudinary → Atlas
+async function uploadPhotosForLoan(loanId) {
+  const fd = new FormData();
+  let hasFile = false;
+  PHOTO_KEYS.forEach(k => {
+    const input = document.getElementById('f-photo-' + k);
+    if (input && input.files[0]) {
+      fd.append(k, input.files[0]);
+      hasFile = true;
+    }
+  });
+  if (!hasFile) return;
+
+  try {
+    const res = await fetch(API + '/loans/' + loanId + '/photos', {
+      method: 'POST',
+      headers: authHeader(false), // no Content-Type — let browser set multipart boundary
+      body: fd
+    });
+    if (!res.ok) {
+      const d = await res.json();
+      toast('Photo upload failed: ' + (d.message || 'Unknown error'), 'error');
+      return;
+    }
+    const data = await res.json();
+    // Patch the in-memory loan so photos show immediately
+    const loan = _loans.find(l => l.id === loanId || l._id === loanId);
+    if (loan) loan.photos = data.photos;
+    toast('📷 Photos saved ✓', 'success');
+  } catch (err) {
+    toast('Photo upload error: ' + err.message, 'error');
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -1253,6 +1698,10 @@ function deleteLoan(id) {
     '🗑 Yes, Delete',
     async () => {
       const res = await DEL('/loans/'+id); if(!res) return;
+      logActivity('loan','delete',
+        'Loan Deleted — '+loan.name+' (Card No: '+loan.cardNo+')',
+        '<b>'+loan.name+'</b> from <b>'+loan.village+'</b> | Principal: <b>₹'+fmt(loan.amount)+'</b> | Total: <b>₹'+fmt(loan.totalAmount)+'</b> | '+payCount+' payment(s) also deleted | Aadhar: '+formatAadharDisplay(loan.aadhar)
+      );
       _loans    = _loans.filter(l=>l.id!==id);
       _payments = _payments.filter(p=>p.loanId!==id);
       toast('Loan deleted','');
@@ -1270,6 +1719,7 @@ function openRenewLoan(loanId) {
   const lastPay  = payments.sort((a,b)=>(b.payDate||'').localeCompare(a.payDate||''))[0];
 
   document.getElementById('renew-prev-name').textContent     = loan.name + ' — ' + loan.village;
+  document.getElementById('renew-prev-cardno').textContent    = loan.cardNo || '—';
   document.getElementById('renew-prev-amount').textContent   = '₹'+fmt(loan.totalAmount);
   document.getElementById('renew-prev-interest').textContent = loan.interest+'%';
   document.getElementById('renew-prev-weeks').textContent    = loan.weeks+' weeks';
@@ -1313,9 +1763,17 @@ async function saveRenewLoan() {
     toast('Please fill all fields!','error'); return;
   }
   const body = { name, village, aadhar: prevLoan?.aadhar||'', phone: prevLoan?.phone||'',
-    address: prevLoan?.address||'', amount, interest, startDate, weeks };
+    address: prevLoan?.address||'', amount, interest, startDate, weeks, cardNo: prevLoan?.cardNo };
   const result = await POST('/loans/'+prevId+'/renew', body);
   if(!result) return;
+  logActivity('loan','close',
+    'Loan Closed — '+prevLoan.name+' (Card No: '+prevLoan.cardNo+') — Renewed',
+    'Previous loan marked as closed for renewal | Total was: <b>₹'+fmt(prevLoan.totalAmount)+'</b>'
+  );
+  logActivity('loan','renew',
+    'Loan Renewed — '+name+' (Card No: '+prevLoan.cardNo+')',
+    '<b>'+name+'</b> from <b>'+village+'</b> | New Principal: <b>₹'+fmt(amount)+'</b> | Interest: <b>'+interest+'%</b> | Total: <b>₹'+fmt(result.totalAmount)+'</b> | Duration: <b>'+weeks+' weeks</b> | Start: <b>'+startDate+'</b> | Renewed from Card No: <b>'+prevLoan.cardNo+'</b>'
+  );
   _loans = _loans.map(l=>l.id===prevId ? {...l, closed:true} : l);
   _loans.push({...result, id:result._id});
   closeModal('modal-renew');
@@ -1336,6 +1794,20 @@ function fillPayBanner(loanId, excludePayId) {
   document.getElementById('pib-rem').textContent   = '₹'+fmt(rem);
 }
 
+function selectPayMode(btn) {
+  document.querySelectorAll('.pm-mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pm-mode').value = btn.dataset.mode;
+}
+
+function resetPayMode(mode) {
+  const m = mode || 'Cash';
+  document.getElementById('pm-mode').value = m;
+  document.querySelectorAll('.pm-mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === m);
+  });
+}
+
 function openAddPayment(loanId) {
   document.getElementById('pay-modal-title').textContent = '💰 Record Payment';
   document.getElementById('pm-loan-id').value  = loanId;
@@ -1343,6 +1815,7 @@ function openAddPayment(loanId) {
   document.getElementById('pm-amount').value   = '';
   document.getElementById('pm-date').value     = todayStr();
   document.getElementById('pm-note').value     = '';
+  resetPayMode('Cash');
   document.getElementById('overpay-warn').classList.remove('show');
   fillPayBanner(loanId,'');
   openModal('modal-payment');
@@ -1356,6 +1829,7 @@ function openEditPayment(payId) {
   document.getElementById('pm-amount').value   = pay.amount;
   document.getElementById('pm-date').value     = pay.payDate;
   document.getElementById('pm-note').value     = pay.note||'';
+  resetPayMode(pay.paymentMode||'Cash');
   document.getElementById('overpay-warn').classList.remove('show');
   fillPayBanner(pay.loanId, payId);
   openModal('modal-payment');
@@ -1371,23 +1845,45 @@ function checkOverpay() {
 }
 
 async function savePayment() {
-  const loanId  = document.getElementById('pm-loan-id').value;
-  const editId  = document.getElementById('pm-edit-id').value;
-  const amount  = parseFloat(document.getElementById('pm-amount').value);
-  const payDate = document.getElementById('pm-date').value;
-  const note    = document.getElementById('pm-note').value.trim();
+  const loanId      = document.getElementById('pm-loan-id').value;
+  const editId      = document.getElementById('pm-edit-id').value;
+  const amount      = parseFloat(document.getElementById('pm-amount').value);
+  const payDate     = document.getElementById('pm-date').value;
+  const note        = document.getElementById('pm-note').value.trim();
+  const paymentMode = document.getElementById('pm-mode').value || 'Cash';
 
   if(!loanId||isNaN(amount)||amount<=0||!payDate){ toast('Enter valid amount and date!','error'); return; }
 
   if(editId) {
-    const result = await PUT('/payments/'+editId, {amount, payDate, note});
+    const prevPay = _payments.find(p=>p.id===editId);
+    const payLoan = _loans.find(l=>l.id===loanId);
+    const result = await PUT('/payments/'+editId, {amount, payDate, note, paymentMode});
     if(!result) return;
+    const payChanges = [];
+    if(prevPay){
+      if(prevPay.amount!==amount) payChanges.push({field:'Amount',old:'₹'+fmt(prevPay.amount),newVal:'₹'+fmt(amount)});
+      if(prevPay.payDate!==payDate) payChanges.push({field:'Date',old:prevPay.payDate,newVal:payDate});
+      if((prevPay.paymentMode||'Cash')!==paymentMode) payChanges.push({field:'Mode',old:prevPay.paymentMode||'Cash',newVal:paymentMode});
+      if((prevPay.note||'')!==(note||'')) payChanges.push({field:'Note',old:prevPay.note||'—',newVal:note||'—'});
+    }
     _payments = _payments.map(p=>p.id===editId?{...result,id:result._id,loanId:result.loanId}:p);
+    logActivity('payment','edit',
+      'Payment Edited — '+(payLoan?payLoan.name+' (Card No: '+payLoan.cardNo+')':'Unknown'),
+      'Amount: <b>₹'+fmt(amount)+'</b> | Mode: <b>'+paymentMode+'</b> | Date: <b>'+payDate+'</b>'+(note?' | Note: '+note:''),
+      payChanges
+    );
     toast('Payment updated ✓','success');
   } else {
-    const result = await POST('/payments', {loanId, amount, payDate, note});
+    const payLoan2 = _loans.find(l=>l.id===loanId);
+    const result = await POST('/payments', {loanId, amount, payDate, note, paymentMode});
     if(!result) return;
     _payments.push({...result, id:result._id, loanId:result.loanId});
+    const totalPaidNow = _payments.filter(p=>p.loanId===loanId).reduce((s,p)=>s+p.amount,0);
+    const rem = Math.max(0,(payLoan2?.totalAmount||0)-totalPaidNow);
+    logActivity('payment','add',
+      'Payment Received — '+(payLoan2?payLoan2.name+' (Card No: '+payLoan2.cardNo+')':'Unknown'),
+      'Paid: <b>₹'+fmt(amount)+'</b> | Mode: <b>'+paymentMode+'</b> | Date: <b>'+payDate+'</b>'+(note?' | Note: <b>'+note+'</b>':'')+' | Running total: <b>₹'+fmt(totalPaidNow)+'</b> | Remaining: <b>₹'+fmt(rem)+'</b> of ₹'+fmt(payLoan2?.totalAmount||0)
+    );
     toast('Payment recorded ✓','success');
   }
   closeModal('modal-payment');
@@ -1403,6 +1899,10 @@ function deletePayment(payId) {
     '🗑 Yes, Delete',
     async () => {
       const res = await DEL('/payments/'+payId); if(!res) return;
+      logActivity('payment','delete',
+        'Payment Deleted — '+(loan?loan.name+' (Card No: '+loan.cardNo+')':'Unknown'),
+        'Deleted payment of <b>₹'+fmt(pay.amount)+'</b> on <b>'+pay.payDate+'</b>'+(pay.note?' | Note was: '+pay.note:'')
+      );
       _payments = _payments.filter(p=>p.id!==payId);
       toast('Payment deleted','');
       renderLoans(); renderDashboard(); renderPaymentsPage();
@@ -1419,6 +1919,10 @@ function deleteAllPayments(loanId, loanName) {
     '🧹 Yes, Clear All',
     async () => {
       const res = await DEL('/payments/loan/'+loanId); if(!res) return;
+      logActivity('payment','delete',
+        'All Payments Deleted — '+loanName,
+        'Deleted all <b>'+count+'</b> payment(s) for <b>'+loanName+'</b>'
+      );
       _payments = _payments.filter(p=>p.loanId!==loanId);
       toast('All payments cleared','');
       renderLoans(); renderDashboard(); renderPaymentsPage();
@@ -1431,17 +1935,18 @@ async function payFullAmount(loanId) {
   const totalPaid = _payments.filter(p=>p.loanId===loanId).reduce((s,p)=>s+p.amount,0);
   const remaining = Math.max(0, loan.totalAmount - totalPaid);
   if(remaining<=0){ toast('Already fully paid!','error'); return; }
-  showConfirm('⚡','Pay Full Remaining?',
-    `Record <b>₹${fmt(remaining)}</b> as full payment for <b>${esc(loan.name)}</b>?`,
-    '⚡ Yes, Pay ₹'+fmt(remaining),
-    async () => {
-      const result = await POST('/payments',{loanId,amount:remaining,payDate:todayStr(),note:'Full remaining paid at once'});
-      if(!result) return;
-      _payments.push({...result,id:result._id,loanId:result.loanId});
-      toast('Full payment recorded ✓','success');
-      renderLoans(); renderDashboard(); renderPaymentsPage();
-    }
-  );
+  // Open the payment modal pre-filled with the full remaining amount
+  // so the user can choose payment mode before confirming
+  document.getElementById('pay-modal-title').textContent = '⚡ Pay Full Remaining';
+  document.getElementById('pm-loan-id').value  = loanId;
+  document.getElementById('pm-edit-id').value  = '';
+  document.getElementById('pm-amount').value   = remaining;
+  document.getElementById('pm-date').value     = todayStr();
+  document.getElementById('pm-note').value     = 'Full remaining paid at once';
+  resetPayMode('Cash');
+  document.getElementById('overpay-warn').classList.remove('show');
+  fillPayBanner(loanId,'');
+  openModal('modal-payment');
 }
 
 // ═══════════════════════════════════════════════
@@ -1454,12 +1959,15 @@ function buildLoanCard(loan) {
   const pct = Math.min(100, Math.round((totalPaid/loan.totalAmount)*100));
   const done = remaining === 0;
 
+  const modeEmoji = m => ({'Cash':'💵','PhonePe':'🟣','GPay':'🔵','Paytm':'🔷','Other UPI':'📲'}[m]||'💳');
+  const modeClass = m => (m==='Cash'?'cash':'upi');
   const payRows = payments.map((p,i)=>`
     <div class="pay-entry">
       <div class="pay-entry-left">
         <span class="pay-serial">#${i+1}</span>
         <div>
           <span class="pay-amount">₹${fmt(p.amount)}</span>
+          <span class="pay-mode-badge ${modeClass(p.paymentMode||'Cash')}">${modeEmoji(p.paymentMode||'Cash')} ${esc(p.paymentMode||'Cash')}</span>
           <span class="pay-date">📅 ${p.payDate}</span>
           ${p.note?`<div class="pay-note">"${esc(p.note)}"</div>`:''}
         </div>
@@ -1863,14 +2371,32 @@ async function saveExpense(){
   const editId=document.getElementById('ex-edit-id').value;
   if(!date||!category||!description||isNaN(amount)||amount<=0){toast('Fill all required fields!','error');return;}
   if(editId){
+    const prevExp=_expenses.find(e=>e.id===editId);
     const result=await PUT('/expenses/'+editId,{date,category,description,amount,paidBy});
     if(!result)return;
+    const expChanges=[];
+    if(prevExp){
+      if(prevExp.amount!==amount) expChanges.push({field:'Amount',old:'₹'+fmt(prevExp.amount),newVal:'₹'+fmt(amount)});
+      if(prevExp.description!==description) expChanges.push({field:'Description',old:prevExp.description,newVal:description});
+      if(prevExp.category!==category) expChanges.push({field:'Category',old:prevExp.category,newVal:category});
+      if(prevExp.date!==date) expChanges.push({field:'Date',old:prevExp.date,newVal:date});
+      if((prevExp.paidBy||'')!==(paidBy||'')) expChanges.push({field:'Paid By',old:prevExp.paidBy||'—',newVal:paidBy||'—'});
+    }
     _expenses=_expenses.map(e=>e.id===editId?{...result,id:result._id}:e);
+    logActivity('expense','edit',
+      'Expense Edited — '+description,
+      'Category: <b>'+category+'</b> | Amount: <b>₹'+fmt(amount)+'</b> | Date: <b>'+date+'</b>'+(paidBy?' | Paid by: '+paidBy:''),
+      expChanges
+    );
     toast('Expense updated ✓','success');
   } else {
     const result=await POST('/expenses',{date,category,description,amount,paidBy});
     if(!result)return;
     _expenses.push({...result,id:result._id});
+    logActivity('expense','add',
+      'Expense Added — '+description,
+      'Category: <b>'+category+'</b> | Amount: <b>₹'+fmt(amount)+'</b> | Date: <b>'+date+'</b>'+(paidBy?' | Paid by: <b>'+paidBy+'</b>':'')
+    );
     toast('Expense added ✓','success');
   }
   closeModal('modal-expense');renderExpenses();renderDashboard();
@@ -1883,6 +2409,10 @@ function deleteExpense(id){
     '🗑 Yes, Delete',
     async()=>{
       const res=await DEL('/expenses/'+id);if(!res)return;
+      logActivity('expense','delete',
+        'Expense Deleted — '+exp.description,
+        'Category: <b>'+exp.category+'</b> | Amount: <b>₹'+fmt(exp.amount)+'</b> | Date: <b>'+exp.date+'</b>'+(exp.paidBy?' | Paid by: '+exp.paidBy:'')
+      );
       _expenses=_expenses.filter(e=>e.id!==id);
       toast('Expense deleted','');renderExpenses();renderDashboard();
     }
@@ -1954,8 +2484,14 @@ function openCapitalSetup(){
 async function saveCapital(){
   const amount=parseFloat(document.getElementById('cap-amount').value);
   if(isNaN(amount)||amount<=0){toast('Enter a valid amount!','error');return;}
+  const prevCapital = _capital;
   const result=await POST('/capital',{amount});
   if(!result)return;
+  logActivity('capital','set',
+    'Capital Updated',
+    'Capital changed from <b>₹'+fmt(prevCapital)+'</b> → <b>₹'+fmt(amount)+'</b>',
+    prevCapital>0?[{field:'Capital',old:'₹'+fmt(prevCapital),newVal:'₹'+fmt(amount)}]:null
+  );
   _capital=amount;
   closeModal('modal-capital');
   toast('Capital set to ₹'+fmt(amount)+' ✓','success');
@@ -2007,6 +2543,270 @@ function togglePw(inputId,btn){
   const show=inp.type==='password';inp.type=show?'text':'password';btn.textContent=show?'🙈':'👁';
 }
 
+// ═══════════════════════════════════════════════
+// TELEGRAM LOGIN ALERTS
+// ═══════════════════════════════════════════════
+const TG_TOKEN_KEY  = 'gs_tg_token';
+const TG_CHATID_KEY = 'gs_tg_chatid';
+
+function getTelegramConfig() {
+  return {
+    token:  localStorage.getItem(TG_TOKEN_KEY)  || '',
+    chatId: localStorage.getItem(TG_CHATID_KEY) || ''
+  };
+}
+
+function openAlertSettings() {
+  const { token, chatId } = getTelegramConfig();
+  const tokenEl  = document.getElementById('tg-token');
+  const chatEl   = document.getElementById('tg-chatid');
+  const statusEl = document.getElementById('tg-status');
+  if (tokenEl)  tokenEl.value  = token;
+  if (chatEl)   chatEl.value   = chatId;
+  if (statusEl) statusEl.style.display = 'none';
+  // Show active badge on header button
+  const btn = document.getElementById('hdr-alert-btn');
+  if (btn) btn.innerHTML = (token && chatId)
+    ? '🔔 <span class="hdr-txt">Alerts</span> <span style="background:#2a7d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;vertical-align:middle">ON</span>'
+    : '🔕 <span class="hdr-txt">Alerts</span>';
+  openModal('modal-alerts');
+}
+
+async function sendTelegramMessage(token, chatId, text) {
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text })
+  });
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.description || 'Telegram error');
+  return data;
+}
+
+async function saveAlertSettings() {
+  const token  = document.getElementById('tg-token')?.value.trim()  || '';
+  const chatId = document.getElementById('tg-chatid')?.value.trim() || '';
+  const statusEl = document.getElementById('tg-status');
+
+  if (!token || !chatId) {
+    if (statusEl) {
+      statusEl.textContent = '⚠️ Please enter both Bot Token and Chat ID.';
+      statusEl.style.cssText = 'display:block;background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
+    }
+    return;
+  }
+
+  if (statusEl) {
+    statusEl.textContent = '⏳ Sending test message…';
+    statusEl.style.cssText = 'display:block;background:var(--surface2);color:var(--text2);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
+  }
+
+  try {
+    const now = new Date();
+    const testMsg =
+      `✅ GramSeva — Alert Test\n` +
+      `━━━━━━━━━━━━━━━━━━\n` +
+      `Login alerts are now ACTIVE!\n` +
+      `You will receive a message like this on every login.\n\n` +
+      `🕐 Time : ${now.toLocaleString('en-IN')}\n` +
+      `👤 User : ${_username || 'Admin'}\n` +
+      `━━━━━━━━━━━━━━━━━━`;
+
+    await sendTelegramMessage(token, chatId, testMsg);
+    localStorage.setItem(TG_TOKEN_KEY,  token);
+    localStorage.setItem(TG_CHATID_KEY, chatId);
+
+    if (statusEl) {
+      statusEl.textContent = '✅ Test message sent! Check your Telegram. Alerts are now active.';
+      statusEl.style.cssText = 'display:block;background:var(--green-bg);color:var(--green);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
+    }
+    // Update header button badge
+    const btn = document.getElementById('hdr-alert-btn');
+    if (btn) btn.innerHTML = '🔔 <span class="hdr-txt">Alerts</span> <span style="background:#2a7d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;vertical-align:middle">ON</span>';
+
+    setTimeout(() => closeModal('modal-alerts'), 2500);
+  } catch(err) {
+    if (statusEl) {
+      statusEl.textContent = '❌ Failed: ' + err.message + ' — Double-check your Bot Token and Chat ID.';
+      statusEl.style.cssText = 'display:block;background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
+    }
+  }
+}
+
+function clearAlertSettings() {
+  localStorage.removeItem(TG_TOKEN_KEY);
+  localStorage.removeItem(TG_CHATID_KEY);
+  const tokenEl  = document.getElementById('tg-token');
+  const chatEl   = document.getElementById('tg-chatid');
+  const statusEl = document.getElementById('tg-status');
+  if (tokenEl)  tokenEl.value  = '';
+  if (chatEl)   chatEl.value   = '';
+  if (statusEl) {
+    statusEl.textContent = '🔕 Alerts disabled. No more login notifications will be sent.';
+    statusEl.style.cssText = 'display:block;background:var(--surface2);color:var(--text2);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
+  }
+  const btn = document.getElementById('hdr-alert-btn');
+  if (btn) btn.innerHTML = '🔕 <span class="hdr-txt">Alerts</span>';
+  toast('Login alerts disabled','');
+}
+
+async function sendLoginAlert(username, device, os, browser, location) {
+  const { token, chatId } = getTelegramConfig();
+  if (!token || !chatId) return;
+
+  const now = new Date();
+  const timeStr = now.toLocaleString('en-IN', {
+    day:'2-digit', month:'short', year:'numeric',
+    hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true
+  });
+
+  // Strip HTML tags from device string (e.g. "📱 Mobile" → "Mobile")
+  const cleanDevice = device.replace(/<[^>]*>/g,'').replace(/^[\p{Emoji}\s]+/u,'').trim() || device;
+
+  // Plain text message — most reliable, no parse_mode issues
+  const msg =
+    `🚨 GramSeva Login Alert\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `👤 User     : ${username}\n` +
+    `🕐 Time     : ${timeStr}\n` +
+    `📍 Location : ${location}\n` +
+    `💻 Device   : ${cleanDevice}\n` +
+    `🖥 OS       : ${os}\n` +
+    `🌐 Browser  : ${browser}\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `⚠️ Not you? Change your password immediately!`;
+
+  try {
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: msg })
+      // No parse_mode — plain text is safest
+    });
+    const data = await res.json();
+    if (!data.ok) console.warn('GramSeva alert error:', data.description);
+  } catch(e) {
+    console.warn('GramSeva: Telegram alert failed —', e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// SESSION / LOGIN LOGGING
+// ═══════════════════════════════════════════════
+function getDeviceInfo() {
+  const ua = navigator.userAgent;
+  let device = 'Unknown Device';
+  let os = 'Unknown OS';
+  let browser = 'Unknown Browser';
+
+  // OS detection
+  if (/Windows NT 10/.test(ua))       os = 'Windows 10/11';
+  else if (/Windows NT 6\.3/.test(ua)) os = 'Windows 8.1';
+  else if (/Windows NT 6\.1/.test(ua)) os = 'Windows 7';
+  else if (/Windows/.test(ua))         os = 'Windows';
+  else if (/Android/.test(ua)) {
+    const m = ua.match(/Android\s([\d.]+)/);
+    os = 'Android' + (m ? ' ' + m[1] : '');
+  } else if (/iPhone OS/.test(ua)) {
+    const m = ua.match(/iPhone OS ([\d_]+)/);
+    os = 'iOS' + (m ? ' ' + m[1].replace(/_/g, '.') : '');
+  } else if (/iPad/.test(ua))   os = 'iPadOS';
+  else if (/Mac OS X/.test(ua)) os = 'macOS';
+  else if (/Linux/.test(ua))    os = 'Linux';
+
+  // Device type
+  if (/Mobile|Android|iPhone|iPod/.test(ua))       device = '📱 Mobile';
+  else if (/iPad|Tablet/.test(ua))                  device = '📟 Tablet';
+  else                                               device = '💻 Desktop';
+
+  // Browser detection
+  if (/Edg\//.test(ua))           browser = 'Edge';
+  else if (/OPR\/|Opera/.test(ua)) browser = 'Opera';
+  else if (/Chrome\//.test(ua))   browser = 'Chrome';
+  else if (/Firefox\//.test(ua))  browser = 'Firefox';
+  else if (/Safari\//.test(ua))   browser = 'Safari';
+
+  return { device, os, browser };
+}
+
+async function getGPSLocation() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      ()  => resolve(null),
+      { timeout: 7000, maximumAge: 60000 }
+    );
+  });
+}
+
+async function reverseGeocode(lat, lon) {
+  try {
+    // OpenStreetMap Nominatim — free, no API key required
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
+      { headers: { 'Accept-Language': 'en' }, signal: AbortSignal.timeout(6000) }
+    );
+    if (!res.ok) return null;
+    const d = await res.json();
+    const a = d.address || {};
+    const city    = a.city || a.town || a.village || a.county || '';
+    const state   = a.state || '';
+    const country = a.country || '';
+    return [city, state, country].filter(Boolean).join(', ') || null;
+  } catch(e) { return null; }
+}
+
+async function getIPLocation() {
+  try {
+    const geo = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+    if (!geo.ok) return null;
+    const g = await geo.json();
+    const city    = g.city || '';
+    const state   = g.region || '';
+    const country = g.country_name || '';
+    return [city, state, country].filter(Boolean).join(', ') || null;
+  } catch(e) { return null; }
+}
+
+async function logLoginSession(username) {
+  const { device, os, browser } = getDeviceInfo();
+
+  let location = 'Location unavailable';
+  let locationSource = '';
+
+  // 1️⃣ Try GPS first — most accurate (prompts browser permission)
+  const gps = await getGPSLocation();
+  if (gps) {
+    const gpsLoc = await reverseGeocode(gps.lat, gps.lon);
+    if (gpsLoc) {
+      location = gpsLoc;
+      locationSource = ' <span style="font-size:10px;background:#e8f5e9;color:#2a7d4f;padding:1px 5px;border-radius:8px;font-weight:700">🛰 GPS</span>';
+    }
+  }
+
+  // 2️⃣ Fall back to IP geolocation if GPS denied/unavailable
+  if (!locationSource) {
+    const ipLoc = await getIPLocation();
+    if (ipLoc) {
+      location = ipLoc;
+      locationSource = ' <span style="font-size:10px;background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:8px;font-weight:700">🌐 IP (approx)</span>';
+    }
+  }
+
+  logActivity(
+    'session', 'login',
+    `Login — ${username}`,
+    `Device: <b>${device}</b> | OS: <b>${os}</b> | Browser: <b>${browser}</b> | 📍 ${location}${locationSource}`,
+    null
+  );
+
+  // 🔔 Send Telegram alert (non-blocking)
+  sendLoginAlert(username, device, os, browser, location);
+}
+
 async function doLogin(){
   const username=document.getElementById('lg-username').value.trim();
   const password=document.getElementById('lg-password').value;
@@ -2022,6 +2822,14 @@ async function doLogin(){
   toast('Welcome back, '+_username+'! ✓','success');
   await loadAll();
   renderDashboard();syncDropdowns();
+  // Update alert button badge
+  const { token: tgT, chatId: tgC } = getTelegramConfig();
+  const alertBtn = document.getElementById('hdr-alert-btn');
+  if (alertBtn) alertBtn.innerHTML = (tgT && tgC)
+    ? '🔔 <span class="hdr-txt">Alerts</span> <span style="background:#2a7d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;vertical-align:middle">ON</span>'
+    : '🔕 <span class="hdr-txt">Alerts</span>';
+  // Log the login session (runs in background — non-blocking)
+  logLoginSession(_username);
 }
 
 
@@ -2029,6 +2837,14 @@ async function doLogin(){
 
 
 function doLogout(){
+  // Log the logout before clearing state
+  if(_username) {
+    logActivity('session','logout',
+      'Logout — '+_username,
+      'User signed out',
+      null
+    );
+  }
   _token='';_username='';
   localStorage.removeItem('gs_token');localStorage.removeItem('gs_username');
   _loans=[];_payments=[];_expenses=[];_capital=0;
@@ -2053,6 +2869,146 @@ async function doChangePassword(){
   if(okEl){okEl.textContent='✓ Password changed!';okEl.style.display='';}
   setTimeout(()=>closeModal('modal-changepw'),1500);
   toast('Password changed ✓','success');
+}
+
+
+// ═══════════════════════════════════════════════
+// CARD NUMBER CHECK
+// ═══════════════════════════════════════════════
+function checkCardNo() {
+  const el = document.getElementById('f-card-no');
+  const warnEl = document.getElementById('card-no-warn');
+  const okEl = document.getElementById('card-no-ok');
+  if(!el) return;
+  const val = parseInt(el.value)||0;
+  if(!val){ warnEl.style.display='none'; okEl.style.display='none'; return; }
+  const dup = _loans.find(l => l.cardNo === val);
+  if(dup){
+    warnEl.textContent = '⚠️ Already used by ' + esc(dup.name);
+    warnEl.style.display = ''; okEl.style.display = 'none';
+    el.style.borderColor = 'var(--red)';
+  } else {
+    okEl.style.display = ''; warnEl.style.display = 'none';
+    el.style.borderColor = 'var(--green)';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// ACTIVITY LOG — localStorage-based, permanent
+// ═══════════════════════════════════════════════
+const LOG_KEY = 'gs_activity_log';
+
+function _getLogs() {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch(e){ return []; }
+}
+function _saveLogs(logs) {
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(logs)); } catch(e){}
+}
+
+function logActivity(type, action, title, details, changes) {
+  const logs = _getLogs();
+  const now = new Date();
+  const pad2 = n => String(n).padStart(2,'0');
+  const entry = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,5),
+    type,       // 'loan' | 'payment' | 'expense' | 'capital'
+    action,     // 'add' | 'edit' | 'delete' | 'close' | 'renew' | 'set'
+    title,
+    details,
+    changes: changes || null,
+    user: _username || 'Unknown',
+    date: `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`,
+    time: `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`,
+    ts: now.getTime()
+  };
+  logs.unshift(entry);
+  // Keep last 2000 entries
+  if(logs.length > 2000) logs.splice(2000);
+  _saveLogs(logs);
+}
+
+// ── Icon & tag map ───────────────────────────────────────────
+const LOG_ICON = {
+  'loan-add':'🌱','loan-edit':'✏️','loan-delete':'🗑️','loan-close':'✅','loan-renew':'🔄',
+  'payment-add':'💰','payment-edit':'✏️','payment-delete':'🗑️',
+  'expense-add':'🧾','expense-edit':'✏️','expense-delete':'🗑️',
+  'capital-set':'💰',
+  'session-login':'🔐','session-logout':'🔓'
+};
+
+function renderActivityLog() {
+  const typeFilter = (document.getElementById('log-filter-type')?.value||'').toLowerCase();
+  const dateFilter = document.getElementById('log-filter-date')?.value||'';
+  let logs = _getLogs();
+  if(typeFilter) logs = logs.filter(l => l.type === typeFilter);
+  if(dateFilter) logs = logs.filter(l => l.date === dateFilter);
+
+  const listEl = document.getElementById('activity-log-list');
+  const emptyEl = document.getElementById('activity-log-empty');
+  if(!listEl) return;
+
+  if(logs.length === 0){
+    listEl.innerHTML = '';
+    if(emptyEl) emptyEl.style.display = '';
+    return;
+  }
+  if(emptyEl) emptyEl.style.display = 'none';
+
+  // Group by date
+  const byDate = {};
+  logs.forEach(l => {
+    if(!byDate[l.date]) byDate[l.date] = [];
+    byDate[l.date].push(l);
+  });
+
+  const today = new Date();
+  const pad2 = n=>String(n).padStart(2,'0');
+  const todayKey = `${today.getFullYear()}-${pad2(today.getMonth()+1)}-${pad2(today.getDate())}`;
+  const yest = new Date(today); yest.setDate(yest.getDate()-1);
+  const yestKey = `${yest.getFullYear()}-${pad2(yest.getMonth()+1)}-${pad2(yest.getDate())}`;
+
+  function friendlyDate(d) {
+    if(d === todayKey) return '📅 Today — ' + d;
+    if(d === yestKey)  return '📅 Yesterday — ' + d;
+    return '📅 ' + d;
+  }
+
+  function buildChangesHtml(changes) {
+    if(!changes || changes.length===0) return '';
+    return '<div class="activity-changes">'+ changes.map(c=>`
+      <div class="activity-change-row">
+        <span style="font-size:10px;font-weight:700;color:var(--text2);min-width:80px">${esc(c.field)}</span>
+        <span class="old-val">${esc(String(c.old))}</span>
+        <span style="color:var(--text2)">→</span>
+        <span class="new-val">${esc(String(c.newVal))}</span>
+      </div>`).join('') + '</div>';
+  }
+
+  let html = '';
+  Object.keys(byDate).sort((a,b)=>b.localeCompare(a)).forEach(date => {
+    const dayLogs = byDate[date];
+    html += `<div class="activity-day-group">
+      <div class="activity-day-label">${friendlyDate(date)} <span style="background:var(--surface2);border-radius:10px;padding:1px 8px;font-size:10px">${dayLogs.length} action${dayLogs.length!==1?'s':''}</span></div>`;
+    dayLogs.forEach(log => {
+      const iconClass = log.type + '-' + log.action;
+      const icon = LOG_ICON[iconClass] || '📝';
+      html += `<div class="activity-item">
+        <div class="activity-icon ${iconClass}">${icon}</div>
+        <div class="activity-body">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span class="activity-tag ${log.type}">${log.type.toUpperCase()}</span>
+            <span class="activity-title">${esc(log.title)}</span>
+          </div>
+          <div class="activity-detail">${log.details||''}</div>
+          ${buildChangesHtml(log.changes)}
+          <div style="margin-top:4px;font-size:11px;color:var(--text2)">👤 ${esc(log.user)}</div>
+        </div>
+        <div class="activity-time">${log.time}</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  listEl.innerHTML = html;
 }
 
 // ═══════════════════════════════════════════════
