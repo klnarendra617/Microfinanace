@@ -2,6 +2,21 @@ const router     = require('express').Router();
 const Loan       = require('../models/Loan');
 const Payment    = require('../models/Payment');
 const auth       = require('../middleware/auth');
+
+// ── Auto hard-delete loans trashed > 7 days ago (runs on every server boot + hourly) ──
+async function purgeOldTrash() {
+  try {
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const stale  = await Loan.find({ deletedAt: { $ne: null, $lt: cutoff } }).select('_id');
+    for (const loan of stale) {
+      await Payment.deleteMany({ loanId: loan._id });
+      await Loan.findByIdAndDelete(loan._id);
+    }
+    if (stale.length) console.log(`[Trash] Auto-purged ${stale.length} loan(s) older than 7 days.`);
+  } catch (e) { console.error('[Trash] Purge error:', e.message); }
+}
+purgeOldTrash();
+setInterval(purgeOldTrash, 60 * 60 * 1000); // run every hour
 const multer     = require('multer');
 const { cloudinary } = require('../config/cloudinary');
 const streamifier = require('streamifier');
@@ -34,10 +49,21 @@ const calc = (amount, interest, weeks, overrideTotal = 0) => {
   return { totalAmount: total, weeklyEMI: Math.round((total / weeks) * 100) / 100 };
 };
 
-// ── GET all loans ────────────────────────────────────────────────────────────
+// ── GET all loans (exclude trashed) ─────────────────────────────────────────
 router.get('/', auth, async (req, res) => {
   try {
-    const loans = await Loan.find({ createdBy: req.user.id }).sort({ cardNo: 1 });
+    const loans = await Loan.find({ createdBy: req.user.id, deletedAt: null }).sort({ cardNo: 1 });
+    res.json(loans);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── GET trash (soft-deleted loans) ───────────────────────────────────────────
+router.get('/trash', auth, async (req, res) => {
+  try {
+    const loans = await Loan.find({
+      createdBy: req.user.id,
+      deletedAt: { $ne: null }
+    }).sort({ deletedAt: -1 });
     res.json(loans);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -129,12 +155,38 @@ router.put('/:id', auth, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ── DELETE loan + payments ───────────────────────────────────────────────────
+// ── SOFT DELETE loan → moves to trash ────────────────────────────────────────
 router.delete('/:id', auth, async (req, res) => {
+  try {
+    const loan = await Loan.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.user.id, deletedAt: null },
+      { deletedAt: new Date() },
+      { new: true }
+    );
+    if (!loan) return res.status(404).json({ message: 'Loan not found.' });
+    res.json({ message: 'Loan moved to trash.', loan });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── RESTORE loan from trash ───────────────────────────────────────────────────
+router.patch('/:id/restore', auth, async (req, res) => {
+  try {
+    const loan = await Loan.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.user.id, deletedAt: { $ne: null } },
+      { deletedAt: null },
+      { new: true }
+    );
+    if (!loan) return res.status(404).json({ message: 'Loan not found in trash.' });
+    res.json(loan);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── PERMANENT DELETE from trash ───────────────────────────────────────────────
+router.delete('/:id/permanent', auth, async (req, res) => {
   try {
     await Payment.deleteMany({ loanId: req.params.id });
     await Loan.findOneAndDelete({ _id: req.params.id, createdBy: req.user.id });
-    res.json({ message: 'Loan deleted.' });
+    res.json({ message: 'Loan permanently deleted.' });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 

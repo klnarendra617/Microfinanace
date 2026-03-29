@@ -34,7 +34,7 @@ async function writeLog(userId, username, type, action, title, details) {
 router.post('/login', async (req, res) => {
   console.log("login hit");
   try {
-    const { username, password } = req.body;
+    const { username, password, deviceId } = req.body;
     console.log(username);
 
     if (!username || !password)
@@ -48,6 +48,18 @@ router.post('/login', async (req, res) => {
     if (!user.isAllowed)
       return res.status(403).json({ message: 'Access denied.' });
 
+    // ── Device limit check ──────────────────────────────
+    // Set allowedDevices array manually in MongoDB Atlas (max 4 entries)
+    // Leave empty [] or don't set it to allow all devices
+    if (user.allowedDevices && user.allowedDevices.length > 0) {
+      if (!deviceId || !user.allowedDevices.includes(deviceId)) {
+        return res.status(403).json({
+          message: 'This device is not authorized. Max 4 devices allowed. Contact admin.'
+        });
+      }
+    }
+    // ────────────────────────────────────────────────────
+
     const match = await user.matchPassword(password);
     console.log("Entered password:", password);
     console.log("Stored hash:", user.password);
@@ -60,7 +72,8 @@ router.post('/login', async (req, res) => {
       token:            sign(user),
       username:         user.username,
       telegramBotToken: user.telegramBotToken || '',
-      telegramChatId:   user.telegramChatId   || ''
+      telegramChatId:   user.telegramChatId   || '',
+      deviceId:         deviceId || ''
     });
 
   } catch (err) {
@@ -126,37 +139,6 @@ router.get('/me', auth, async (req, res) => {
       username: user.username
     });
 
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// 🔔 GET Telegram alert config
-router.get('/alert-config', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('telegramBotToken telegramChatId');
-    if (!user) return res.status(404).json({ message: 'User not found.' });
-    res.json({
-      telegramBotToken: user.telegramBotToken || '',
-      telegramChatId:   user.telegramChatId   || ''
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// 🔔 SAVE Telegram alert config
-router.post('/alert-config', auth, async (req, res) => {
-  try {
-    const { telegramBotToken, telegramChatId } = req.body;
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: 'User not found.' });
-
-    user.telegramBotToken = telegramBotToken || '';
-    user.telegramChatId   = telegramChatId   || '';
-    await user.save();
-
-    res.json({ message: 'Telegram config saved.' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

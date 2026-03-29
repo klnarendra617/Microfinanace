@@ -186,8 +186,11 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
 
 .toast-wrap{position:fixed;bottom:24px;right:16px;z-index:300;display:flex;flex-direction:column;gap:8px}
 .toast{background:var(--text);color:#fff;padding:12px 18px;border-radius:var(--radius-sm);font-size:14px;
-  font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.25);animation:toastIn .25s ease;max-width:300px}
+  font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.25);animation:toastIn .25s ease;max-width:340px;display:flex;align-items:center;gap:10px}
 .toast.success{background:var(--green)}.toast.error{background:var(--red)}
+.toast-undo-btn{background:rgba(255,255,255,.25);border:none;color:#fff;font-size:12px;font-weight:700;
+  padding:4px 10px;border-radius:20px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.toast-undo-btn:hover{background:rgba(255,255,255,.4)}
 @keyframes toastIn{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
 
 /* ═══════════════════════════════════════════════
@@ -405,7 +408,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
 
 /* ── Activity Log ── */
 .activity-day-group{margin-bottom:20px}
-.activity-day-label{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;
+.activity-day-label{font-size:12px;font-weight:700;color:var(--text2);
   letter-spacing:.6px;padding:6px 0;border-bottom:1.5px solid var(--border);margin-bottom:10px;
   display:flex;align-items:center;gap:8px}
 .activity-item{display:flex;gap:12px;padding:10px 14px;background:var(--surface);
@@ -509,6 +512,24 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
       <button class="btn btn-primary" onclick="doChangePassword()">✔ Update Password</button>
       <button class="btn btn-ghost" onclick="closeModal('modal-changepw')">Cancel</button>
     </div>
+
+    <!-- Device ID Section -->
+    <div style="margin-top:22px;border-top:1.5px solid var(--border);padding-top:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📱 This Device's ID</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">
+        Share this ID with your admin to get access from this device.
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div id="device-id-display" style="font-family:var(--mono);font-size:13px;font-weight:600;
+          background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+          padding:8px 12px;flex:1;word-break:break-all;color:var(--text);min-width:0">
+          Loading…
+        </div>
+        <button class="btn btn-sm btn-ghost" onclick="copyDeviceId()" id="copy-device-btn" style="flex-shrink:0">
+          📋 Copy
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -599,7 +620,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   <div class="hdr-right">
     <span id="header-username" class="hdr-username"></span>
     <button class="btn btn-sm hdr-btn" onclick="openAddLoan()">＋ <span class="hdr-txt">New Loan</span></button>
-    <button class="btn btn-sm hdr-btn" onclick="openModal('modal-changepw')" title="Change Password">🔑 <span class="hdr-txt">Password</span></button>
+    <button class="btn btn-sm hdr-btn" onclick="openModal('modal-changepw');showDeviceId()" title="Change Password">🔑 <span class="hdr-txt">Password</span></button>
     <button class="btn btn-sm hdr-btn hdr-logout" onclick="doLogout()" title="Logout">🔓 <span class="hdr-txt">Logout</span></button>
   </div>
 </header>
@@ -611,6 +632,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   <button class="nav-tab" onclick="showPage('calendar',this)">📅 Calendar</button>
   <button class="nav-tab" onclick="showPage('expenses',this)">🧾 Expenses</button>
   <button class="nav-tab" onclick="showPage('activitylog',this)">📜 Activity Log</button>
+  <button class="nav-tab" onclick="showPage('trash',this)">🗑️ Trash</button>
 </nav>
 
 <main class="main">
@@ -904,6 +926,22 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
   <div id="activity-log-empty" class="empty-state" style="display:none">
     <div class="icon">📜</div>
     <p>No activity recorded yet. Actions you take will appear here.</p>
+  </div>
+</section>
+
+<!-- TRASH (Deleted Loans) -->
+<section class="page" id="page-trash">
+  <div class="section-header" style="margin-bottom:16px">
+    <div>
+      <div class="section-title">🗑️ Deleted Loans</div>
+      <div class="section-sub">Loans are permanently deleted after 7 days</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="loadTrash()">🔄 Refresh</button>
+  </div>
+  <div id="trash-list"></div>
+  <div id="trash-empty" class="empty-state" style="display:none">
+    <div class="icon">🗑️</div>
+    <p>Trash is empty. Deleted loans appear here for 7 days before permanent removal.</p>
   </div>
 </section>
 
@@ -1233,6 +1271,9 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
     <button class="bnav-btn" id="bnav-activitylog" onclick="showPage('activitylog',this);syncBottomNav('activitylog')">
       <span class="bicon">📜</span>Log
     </button>
+    <button class="bnav-btn" id="bnav-trash" onclick="showPage('trash',this);syncBottomNav('trash')">
+      <span class="bicon">🗑️</span>Trash
+    </button>
   </div>
 </nav>
 
@@ -1291,9 +1332,39 @@ const setText  = (id,v) => { const el=document.getElementById(id); if(el) el.tex
 
 function toast(msg, type) {
   const t = document.createElement('div');
-  t.className = 'toast '+(type||''); t.textContent = msg;
+  t.className = 'toast '+(type||'');
+  const span = document.createElement('span');
+  span.style.flex = '1';
+  span.textContent = msg;
+  t.appendChild(span);
   document.getElementById('toast-wrap').appendChild(t);
   setTimeout(()=>t.remove(), 3000);
+}
+
+// Toast with undo button — calls onUndo() if clicked within timeout
+function toastUndo(msg, onUndo, timeout=6000) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.background = 'var(--red)';
+  const span = document.createElement('span');
+  span.style.flex = '1';
+  span.textContent = msg;
+  const btn = document.createElement('button');
+  btn.className = 'toast-undo-btn';
+  btn.textContent = '↩ Undo';
+  let undone = false;
+  btn.onclick = () => {
+    if(undone) return;
+    undone = true;
+    onUndo();
+    t.remove();
+    toast('Action undone ✓', 'success');
+  };
+  t.appendChild(span);
+  t.appendChild(btn);
+  document.getElementById('toast-wrap').appendChild(t);
+  const timer = setTimeout(() => { if(!undone) t.remove(); }, timeout);
+  return () => { clearTimeout(timer); t.remove(); };
 }
 
 // ═══════════════════════════════════════════════
@@ -1369,6 +1440,7 @@ function showPage(id, tab) {
   if(id==='expenses') renderExpenses();
   if(id==='calendar') renderCalendar();
   if(id==='activitylog') renderActivityLog();
+  if(id==='trash') loadTrash();
 }
 
 function syncBottomNav(id) {
@@ -1705,21 +1777,39 @@ function confirmNo() { closeModal('modal-confirm'); _confirmCallback = null; }
 function deleteLoan(id) {
   const loan = _loans.find(l=>l.id===id); if(!loan) return;
   const payCount = _payments.filter(p=>p.loanId===id).length;
-  showConfirm('🗑️','Delete Loan?',
-    `Delete loan for <b>${esc(loan.name)}</b>?<br><br>
-     Also deletes <b>${payCount} payment${payCount!==1?'s':''}</b>.<br>
-     <span style="color:var(--red);font-weight:600">Cannot be undone.</span>`,
-    '🗑 Yes, Delete',
+  showConfirm('🗑️','Move to Trash?',
+    `Move loan for <b>${esc(loan.name)}</b> to trash?<br><br>
+     Also hides <b>${payCount} payment${payCount!==1?'s':''}</b>.<br>
+     <span style="color:var(--text2);font-weight:600">📦 You can restore it from Trash within 7 days.</span>`,
+    '🗑 Yes, Trash It',
     async () => {
-      const res = await DEL('/loans/'+id); if(!res) return;
-      logActivity('loan','delete',
-        'Loan Deleted — '+loan.name+' (Card No: '+loan.cardNo+')',
-        '<b>'+loan.name+'</b> from <b>'+loan.village+'</b> | Principal: <b>₹'+fmt(loan.amount)+'</b> | Total: <b>₹'+fmt(loan.totalAmount)+'</b> | '+payCount+' payment(s) also deleted | Aadhar: '+formatAadharDisplay(loan.aadhar)
-      );
+      const removedLoan = {...loan};
+      const removedPayments = _payments.filter(p=>p.loanId===id).map(p=>({...p}));
+      let undone = false;
+
+      // Optimistically remove from UI
       _loans    = _loans.filter(l=>l.id!==id);
       _payments = _payments.filter(p=>p.loanId!==id);
-      toast('Loan deleted','');
       syncDropdowns(); renderLoans(); renderDashboard();
+
+      toastUndo('Loan moved to trash — ' + removedLoan.name, () => {
+        undone = true;
+        _loans.push(removedLoan);
+        _payments.push(...removedPayments);
+        _loans.sort((a,b)=>(a.cardNo||0)-(b.cardNo||0));
+        _payments.sort((a,b)=>(a.payDate||'').localeCompare(b.payDate||''));
+        syncDropdowns(); renderLoans(); renderDashboard();
+      }, 6000);
+
+      // Only actually soft-delete from DB if not undone after 6s
+      setTimeout(async () => {
+        if(undone) return;
+        const res = await DEL('/loans/'+id); if(!res) return;
+        logActivity('loan','delete',
+          'Loan Trashed — '+removedLoan.name+' (Card No: '+removedLoan.cardNo+')',
+          '<b>'+removedLoan.name+'</b> from <b>'+removedLoan.village+'</b> | Principal: <b>₹'+fmt(removedLoan.amount)+'</b> | Total: <b>₹'+fmt(removedLoan.totalAmount)+'</b> | Moved to trash (auto-deleted in 7 days)'
+        );
+      }, 6000);
     }
   );
 }
@@ -1891,17 +1981,33 @@ function deletePayment(payId) {
   const loan = _loans.find(l=>l.id===pay.loanId);
   showConfirm('💸','Delete Payment?',
     `Delete payment of <b>₹${fmt(pay.amount)}</b> on <b>${pay.payDate}</b>${loan?` for <b>${esc(loan.name)}</b>`:''}?<br>
-     <span style="color:var(--red);font-weight:600">Cannot be undone.</span>`,
+     <span style="color:var(--red);font-weight:600">You will have 6 seconds to undo!</span>`,
     '🗑 Yes, Delete',
     async () => {
-      const res = await DEL('/payments/'+payId); if(!res) return;
-      logActivity('payment','delete',
-        'Payment Deleted — '+(loan?loan.name+' (Card No: '+loan.cardNo+')':'Unknown'),
-        'Deleted payment of <b>₹'+fmt(pay.amount)+'</b> on <b>'+pay.payDate+'</b>'+(pay.note?' | Note was: '+pay.note:'')
-      );
+      const removedPay = {...pay};
+      let undone = false;
+
+      // Optimistically remove from UI
       _payments = _payments.filter(p=>p.id!==payId);
-      toast('Payment deleted','');
       renderLoans(); renderDashboard(); renderPaymentsPage();
+
+      toastUndo(`Payment ₹${fmt(removedPay.amount)} deleted`, () => {
+        undone = true;
+        _payments.push(removedPay);
+        // Re-sort by date to maintain order
+        _payments.sort((a,b)=>(a.payDate||'').localeCompare(b.payDate||''));
+        renderLoans(); renderDashboard(); renderPaymentsPage();
+      }, 6000);
+
+      // Only delete from DB if not undone after 6s
+      setTimeout(async () => {
+        if(undone) return;
+        const res = await DEL('/payments/'+payId); if(!res) return;
+        logActivity('payment','delete',
+          'Payment Deleted — '+(loan?loan.name+' (Card No: '+loan.cardNo+')':'Unknown'),
+          'Deleted payment of <b>₹'+fmt(removedPay.amount)+'</b> on <b>'+removedPay.payDate+'</b>'+(removedPay.note?' | Note was: '+removedPay.note:'')
+        );
+      }, 6000);
     }
   );
 }
@@ -2838,7 +2944,7 @@ async function getGPSLocation() {
     navigator.geolocation.getCurrentPosition(
       pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
       ()  => resolve(null),
-      { timeout: 7000, maximumAge: 60000 }
+      { timeout: 20000, maximumAge: 0 }
     );
   });
 }
@@ -2872,7 +2978,82 @@ async function getIPLocation() {
   } catch(e) { return null; }
 }
 
-async function logLoginSession(username) {
+function showNewDeviceLocationPrompt(username) {
+  const overlay = document.createElement('div');
+  overlay.id = 'new-device-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  `;
+
+  overlay.innerHTML = `
+    <div style="background:var(--surface);border-radius:var(--radius);padding:32px 24px;
+      max-width:380px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.3);text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">📍</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px">Location Required</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px">
+        For security, your admin requires location access on login.<br>
+        <b>Please tap Allow</b> when your browser asks for location.
+      </div>
+      <div style="background:var(--yellow-bg);border:1.5px solid var(--accent2);border-radius:var(--radius-sm);
+        padding:10px 14px;margin-bottom:20px;font-size:12px;color:var(--yellow);line-height:1.5;text-align:left">
+        ⚠️ Location access is required to proceed. If you deny it, you will be logged out.
+      </div>
+      <button id="ndp-allow" style="background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);
+        padding:13px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px">
+        📍 Allow Location & Continue
+      </button>
+      <div id="ndp-countdown" style="font-size:12px;color:var(--text2);margin-top:4px">
+        Waiting for your response… <b id="ndp-secs">20</b>s
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Countdown timer display
+  let secsLeft = 20;
+  const secsEl = document.getElementById('ndp-secs');
+  const countInterval = setInterval(() => {
+    secsLeft--;
+    if (secsEl) secsEl.textContent = secsLeft;
+    if (secsLeft <= 0) clearInterval(countInterval);
+  }, 1000);
+
+  document.getElementById('ndp-allow').onclick = async () => {
+    clearInterval(countInterval);
+    const btn = document.getElementById('ndp-allow');
+    btn.textContent = '⏳ Waiting for location permission…';
+    btn.disabled = true;
+    document.getElementById('ndp-countdown').textContent = 'Please allow location in the browser popup above.';
+
+    // Request GPS — give full 20s
+    const gps = await getGPSLocation();
+
+    if (gps) {
+      // ✅ Allowed — pass GPS result directly, no second request
+      overlay.remove();
+      logLoginSession(username, gps);
+    } else {
+      // ❌ Denied — force logout
+      overlay.remove();
+      toast('Location denied. You have been logged out for security.', 'error');
+      setTimeout(() => doLogout(), 1500);
+    }
+  };
+
+  // Auto-logout if no response after 25s
+  setTimeout(() => {
+    if (document.getElementById('new-device-overlay')) {
+      clearInterval(countInterval);
+      overlay.remove();
+      toast('No location response. Logged out for security.', 'error');
+      setTimeout(() => doLogout(), 1500);
+    }
+  }, 25000);
+}
+
+async function logLoginSession(username, preResolvedGps = null) {
   const { device, os, browser } = getDeviceInfo();
   const now = new Date();
   const timeStr = now.toLocaleString('en-IN', {
@@ -2881,11 +3062,35 @@ async function logLoginSession(username) {
   });
   const cleanDevice = device.replace(/<[^>]*>/g,'').replace(/^[\p{Emoji}\s]+/u,'').trim() || device;
 
-  // ── Stage 1: Send alert IMMEDIATELY with what we know ──
-  // Don't wait for location — user gets instant notification
+  // ── Use pre-resolved GPS if available, otherwise request fresh ──
+  const gps = preResolvedGps || await getGPSLocation();
+  let location = '';
+  let locationSource = '';
+  let lat = null, lon = null;
+
+  if (gps) {
+    lat = gps.lat; lon = gps.lon;
+    const gpsLoc = await reverseGeocode(gps.lat, gps.lon);
+    if (gpsLoc) {
+      location = gpsLoc;
+      locationSource = '🛰 GPS';
+    } else {
+      location = `${gps.lat.toFixed(4)}, ${gps.lon.toFixed(4)}`;
+      locationSource = '🛰 GPS (coords)';
+    }
+  } else {
+    // GPS denied — use IP as last resort for Telegram only
+    const ipLoc = await getIPLocation();
+    location = ipLoc || 'Not available';
+    locationSource = '🌐 IP (approx)';
+  }
+
+  const mapsLink = (lat && lon) ? `\nhttps://maps.google.com/?q=${lat},${lon}` : '';
+
+  // ── Send full alert to Telegram ──
   const { token, chatId } = getAdminConfig();
   if (token && chatId) {
-    const quickMsg =
+    const msg =
       `🚨 GramSeva Login Alert\n` +
       `━━━━━━━━━━━━━━━━━━\n` +
       `👤 User    : ${username}\n` +
@@ -2893,51 +3098,16 @@ async function logLoginSession(username) {
       `💻 Device  : ${cleanDevice}\n` +
       `🖥 OS      : ${os}\n` +
       `🌐 Browser : ${browser}\n` +
-      `📍 Location: Detecting…\n` +
+      `📍 Location: ${location} [${locationSource}]${mapsLink}\n` +
       `━━━━━━━━━━━━━━━━━━\n` +
       `⚠️ Not you? Change your password immediately!`;
-    sendTelegram(token, chatId, quickMsg).catch(() => {});
+    sendTelegram(token, chatId, msg).catch(() => {});
   }
 
-  // ── Stage 2: Resolve location, then send follow-up ──
-  let location = '';
-  let locationSource = '';
-
-  // Try GPS first (accurate) — browser will prompt for permission
-  const gps = await getGPSLocation();
-  if (gps) {
-    const gpsLoc = await reverseGeocode(gps.lat, gps.lon);
-    if (gpsLoc) {
-      location = gpsLoc;
-      locationSource = '🛰 GPS';
-    }
-  }
-
-  // Fall back to IP if GPS denied/failed
-  if (!location) {
-    const ipLoc = await getIPLocation();
-    if (ipLoc) {
-      location = ipLoc;
-      locationSource = '🌐 IP (approx)';
-    }
-  }
-
-  if (!location) location = 'Not available (location denied)';
-
-  // Send location follow-up to Telegram
-  if (token && chatId) {
-    const locMsg =
-      `📍 Location update for login above:\n` +
-      `${location}  [${locationSource}]`;
-    sendTelegram(token, chatId, locMsg).catch(() => {});
-  }
-
-  // ── Log to Activity Log (with full details) ──
-  const locSourceBadge = locationSource === '🛰 GPS'
+  // ── Log to Activity Log ──
+  const locSourceBadge = locationSource.includes('GPS')
     ? ' <span style="font-size:10px;background:#e8f5e9;color:#2a7d4f;padding:1px 5px;border-radius:8px;font-weight:700">🛰 GPS</span>'
-    : locationSource === '🌐 IP (approx)'
-    ? ' <span style="font-size:10px;background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:8px;font-weight:700">🌐 IP</span>'
-    : '';
+    : ' <span style="font-size:10px;background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:8px;font-weight:700">🌐 IP</span>';
 
   logActivity(
     'session', 'login',
@@ -2947,11 +3117,22 @@ async function logLoginSession(username) {
   );
 }
 
+// ── Device fingerprint (persistent per browser) ──
+function getDeviceFingerprint() {
+  let fp = localStorage.getItem('gs_device_fp');
+  if (!fp) {
+    fp = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('gs_device_fp', fp);
+  }
+  return fp;
+}
+
 async function doLogin(){
   const username=document.getElementById('lg-username').value.trim();
   const password=document.getElementById('lg-password').value;
   if(!username||!password){showLoginError('login-error','Enter username and password.');return;}
-  const res=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+  const deviceFp = getDeviceFingerprint();
+  const res=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password,deviceId:deviceFp})});
   const data=await res.json();
   if(!res.ok){showLoginError('login-error',data.message);return;}
   _token=data.token; _username=data.username;
@@ -2966,8 +3147,23 @@ async function doLogin(){
   renderDashboard();syncDropdowns();
   // Update alert button badge
   updateAlertHeaderBtn();
-  // Log the login session (runs in background — non-blocking)
-  logLoginSession(_username);
+
+  // ── New device check → show location prompt before logging session ──
+  const knownDevices = JSON.parse(localStorage.getItem('gs_known_devices') || '[]');
+  const currentFp    = getDeviceFingerprint();
+  const isNewDevice  = !knownDevices.includes(currentFp);
+
+  if (isNewDevice) {
+    // Mark device as known for future logins
+    knownDevices.push(currentFp);
+    localStorage.setItem('gs_known_devices', JSON.stringify(knownDevices));
+    // Show location prompt — GPS required
+    showNewDeviceLocationPrompt(_username);
+  } else {
+    // Known device — still request GPS, log session
+    // GPS permission already granted on first login so browser won't prompt again
+    logLoginSession(_username);
+  }
 }
 
 
@@ -2990,6 +3186,29 @@ function doLogout(){
   document.getElementById('lg-password').value='';
   document.getElementById('login-screen').style.display='flex';
   toast('Logged out','');
+}
+
+// ── Device ID helpers ────────────────────────────────────────────────────────
+function showDeviceId() {
+  const fp = localStorage.getItem('gs_device_fp') || 'Not found — try logging out and back in';
+  const el = document.getElementById('device-id-display');
+  if (el) el.textContent = fp;
+}
+
+function copyDeviceId() {
+  const fp = localStorage.getItem('gs_device_fp') || '';
+  if (!fp) { toast('Device ID not found', 'error'); return; }
+  navigator.clipboard.writeText(fp).then(() => {
+    const btn = document.getElementById('copy-device-btn');
+    if (btn) { btn.textContent = '✅ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000); }
+    toast('Device ID copied to clipboard', 'success');
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = fp; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    toast('Device ID copied', 'success');
+  });
 }
 
 async function doChangePassword(){
@@ -3147,6 +3366,142 @@ function renderActivityLog() {
     html += '</div>';
   });
   listEl.innerHTML = html;
+}
+
+
+// ═══════════════════════════════════════════════
+// TRASH — Deleted Loans (Restore / Permanent Delete)
+// ═══════════════════════════════════════════════
+let _trash = [];
+
+async function loadTrash() {
+  const list  = document.getElementById('trash-list');
+  const empty = document.getElementById('trash-empty');
+  list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2);font-size:14px">Loading…</div>';
+  empty.style.display = 'none';
+
+  const data = await GET('/loans/trash');
+  _trash = (data || []).map(l => ({ ...l, id: l._id }));
+
+  if (!_trash.length) {
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+
+  list.innerHTML = _trash.map(loan => {
+    const deletedDate  = new Date(loan.deletedAt);
+    const expiresDate  = new Date(deletedDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const msLeft       = expiresDate - Date.now();
+    const daysLeft     = Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
+    const hoursLeft    = Math.max(0, Math.ceil(msLeft / (60 * 60 * 1000)));
+    const expiryLabel  = daysLeft > 1
+      ? `${daysLeft} days left`
+      : daysLeft === 1
+        ? `${hoursLeft} hour${hoursLeft !== 1 ? 's' : ''} left`
+        : 'Expiring soon!';
+    const expiryColor  = daysLeft <= 1 ? 'var(--red)' : daysLeft <= 2 ? 'var(--yellow)' : 'var(--text2)';
+    const deletedOn    = deletedDate.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    const payCount     = _payments.filter(p => p.loanId === loan.id).length;
+
+    return `
+    <div class="card" style="border-left:4px solid var(--red);opacity:${daysLeft <= 1 ? '0.85' : '1'}">
+      <div class="card-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="card-name">${esc(loan.name)}</span>
+            ${loan.cardNo ? `<span style="font-family:var(--mono);font-size:12px;background:var(--surface2);padding:2px 8px;border-radius:12px;color:var(--text2)">Card #${loan.cardNo}</span>` : ''}
+          </div>
+          <span class="card-village">${esc(loan.village)}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-sm btn-green" onclick="restoreLoan('${loan.id}')">↩️ Restore</button>
+          <button class="btn btn-sm btn-red" onclick="permanentDeleteLoan('${loan.id}','${esc(loan.name)}')">💀 Delete Forever</button>
+        </div>
+      </div>
+
+      <div class="card-meta" style="margin-top:12px">
+        <div class="meta-item">
+          <div class="m-label">Principal</div>
+          <div class="m-value">₹${fmt(loan.amount)}</div>
+        </div>
+        <div class="meta-item">
+          <div class="m-label">Total</div>
+          <div class="m-value">₹${fmt(loan.totalAmount)}</div>
+        </div>
+        <div class="meta-item">
+          <div class="m-label">Interest</div>
+          <div class="m-value">${loan.interest}%</div>
+        </div>
+        <div class="meta-item">
+          <div class="m-label">Weeks</div>
+          <div class="m-value">${loan.weeks}</div>
+        </div>
+        <div class="meta-item">
+          <div class="m-label">Start Date</div>
+          <div class="m-value" style="font-size:13px">${loan.startDate}</div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+        <div style="font-size:12px;color:var(--text2)">
+          🗑️ Deleted on <b>${deletedOn}</b>
+          ${payCount > 0 ? ` &nbsp;|&nbsp; 💳 ${payCount} payment${payCount!==1?'s':''} hidden` : ''}
+        </div>
+        <div style="font-size:12px;font-weight:700;color:${expiryColor};background:${daysLeft<=1?'var(--red-bg)':daysLeft<=2?'var(--yellow-bg)':'var(--surface2)'};padding:3px 10px;border-radius:20px">
+          ⏳ ${expiryLabel}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function restoreLoan(id) {
+  const loan = _trash.find(l => l.id === id);
+  if (!loan) return;
+  showConfirm('↩️', 'Restore Loan?',
+    `Restore loan for <b>${esc(loan.name)}</b> back to active loans?`,
+    '↩️ Yes, Restore',
+    async () => {
+      const res = await fetch(`${API}/loans/${id}/restore`, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + _token }
+      });
+      if (!res.ok) { toast('Failed to restore loan', 'error'); return; }
+      const restored = await res.json();
+      // Add back to _loans in memory
+      _loans.push({ ...restored, id: restored._id });
+      _loans.sort((a, b) => (a.cardNo || 0) - (b.cardNo || 0));
+      syncDropdowns(); renderDashboard();
+      toast('Loan restored — ' + loan.name, 'success');
+      logActivity('loan', 'restore',
+        'Loan Restored — ' + loan.name + ' (Card No: ' + loan.cardNo + ')',
+        loan.name + ' from ' + loan.village + ' restored from trash.'
+      );
+      await loadTrash();
+    }
+  );
+}
+
+async function permanentDeleteLoan(id, name) {
+  showConfirm('💀', 'Delete Forever?',
+    `Permanently delete loan for <b>${esc(name)}</b>?<br><br>
+     <span style="color:var(--red);font-weight:600">⚠️ This cannot be undone. All payments will also be deleted.</span>`,
+    '💀 Delete Forever',
+    async () => {
+      const res = await fetch(`${API}/loans/${id}/permanent`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + _token }
+      });
+      if (!res.ok) { toast('Failed to delete', 'error'); return; }
+      toast('Permanently deleted — ' + name, '');
+      logActivity('loan', 'delete',
+        'Loan Permanently Deleted — ' + name,
+        name + ' permanently deleted from trash (cannot be recovered).'
+      );
+      await loadTrash();
+    }
+  );
 }
 
 // ═══════════════════════════════════════════════

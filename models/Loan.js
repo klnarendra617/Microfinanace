@@ -17,6 +17,10 @@ const loanSchema = new mongoose.Schema({
   renewedFrom: { type: mongoose.Schema.Types.ObjectId, ref: 'Loan', default: null },
   createdBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 
+  // ── Soft delete (Trash) ───────────────────────────────
+  // Set when loan is "deleted" — auto hard-deleted after 7 days via cron
+  deletedAt: { type: Date, default: null },
+
   // ── Photos (Cloudinary URLs) ──────────────────
   photos: {
     aadharUrl: { type: String, default: '' },

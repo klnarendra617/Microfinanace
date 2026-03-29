@@ -21,23 +21,19 @@ const userSchema = new mongoose.Schema({
   },
 
   // Stamped every time password is changed.
-  // The auth middleware rejects any JWT whose iat is older than this,
-  // which forces every other device to re-login automatically.
   passwordChangedAt: {
     type: Date,
     default: null
   },
 
   // Telegram login alert config — stored per user in DB
-  // so alerts work from any device, not just the one that configured it
-  telegramBotToken: {
-    type: String,
-    default: ''
-  },
-  telegramChatId: {
-    type: String,
-    default: ''
-  }
+  telegramBotToken: { type: String, default: '' },
+  telegramChatId:   { type: String, default: '' },
+
+  // Device whitelist — manually set in MongoDB Atlas (max 4)
+  // Empty array = all devices allowed
+  // Non-empty   = only listed device fingerprints can log in
+  allowedDevices: { type: [String], default: [] }
 
 }, { timestamps: true });
 
