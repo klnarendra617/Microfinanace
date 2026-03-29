@@ -4,7 +4,7 @@ const loanSchema = new mongoose.Schema({
   cardNo:      { type: Number },
   name:        { type: String, required: true, trim: true },
   village:     { type: String, required: true, trim: true },
-  aadhar:      { type: String, required: true },
+  aadhar:      { type: String, default: '' },
   phone:       { type: String, required: true },
   address:     { type: String, default: '' },
   amount:      { type: Number, required: true },

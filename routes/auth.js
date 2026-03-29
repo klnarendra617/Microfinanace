@@ -57,8 +57,10 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Incorrect password.' });
 
     res.json({
-      token:    sign(user),
-      username: user.username
+      token:            sign(user),
+      username:         user.username,
+      telegramBotToken: user.telegramBotToken || '',
+      telegramChatId:   user.telegramChatId   || ''
     });
 
   } catch (err) {
@@ -124,6 +126,37 @@ router.get('/me', auth, async (req, res) => {
       username: user.username
     });
 
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 🔔 GET Telegram alert config
+router.get('/alert-config', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('telegramBotToken telegramChatId');
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    res.json({
+      telegramBotToken: user.telegramBotToken || '',
+      telegramChatId:   user.telegramChatId   || ''
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 🔔 SAVE Telegram alert config
+router.post('/alert-config', auth, async (req, res) => {
+  try {
+    const { telegramBotToken, telegramChatId } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+
+    user.telegramBotToken = telegramBotToken || '';
+    user.telegramChatId   = telegramChatId   || '';
+    await user.save();
+
+    res.json({ message: 'Telegram config saved.' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

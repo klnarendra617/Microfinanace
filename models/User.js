@@ -26,6 +26,17 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: {
     type: Date,
     default: null
+  },
+
+  // Telegram login alert config — stored per user in DB
+  // so alerts work from any device, not just the one that configured it
+  telegramBotToken: {
+    type: String,
+    default: ''
+  },
+  telegramChatId: {
+    type: String,
+    default: ''
   }
 
 }, { timestamps: true });

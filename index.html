@@ -113,14 +113,6 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
 .pay-serial{background:var(--blue-bg);color:var(--blue);font-size:11px;font-weight:700;
   padding:3px 9px;border-radius:20px;white-space:nowrap}
 .pay-amount{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--green)}
-.pm-mode-btn{padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);
-  font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--text2)}
-.pm-mode-btn:hover{border-color:var(--accent);color:var(--accent)}
-.pm-mode-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.pay-mode-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;
-  padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text2);margin-left:4px;vertical-align:middle}
-.pay-mode-badge.cash{background:#e8f5e9;color:#2a7d4f}
-.pay-mode-badge.upi{background:#e8f0ff;color:#3b5bdb}
 .pay-date{font-size:12px;color:var(--text2);margin-left:6px}
 .pay-note{font-size:12px;color:var(--text2);font-style:italic;margin-top:2px}
 .pay-entry-actions{display:flex;gap:5px;flex-shrink:0}
@@ -521,46 +513,80 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
 </div>
 
 <!-- TELEGRAM ALERT SETTINGS MODAL -->
+<!-- ADMIN ALERT SETTINGS MODAL -->
 <div class="modal-overlay" id="modal-alerts">
-  <div class="modal" style="max-width:480px">
+  <div class="modal" style="max-width:460px">
     <div class="modal-title">🔔 Login Alert Settings</div>
 
-    <!-- Explainer -->
-    <div style="background:var(--blue-bg);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:18px;font-size:13px;line-height:1.6;color:var(--text)">
-      <b style="color:var(--blue)">How it works:</b> Every time someone logs in with your credentials, you'll instantly receive a <b>Telegram message</b> with their device, browser, location and timestamp — even if it's you.<br><br>
-      <b style="color:var(--blue)">Setup (2 mins):</b><br>
-      1. Open Telegram → search <b>@BotFather</b> → send <code>/newbot</code> → copy the <b>Bot Token</b><br>
-      2. Search <b>@userinfobot</b> → send any message → copy your <b>Chat ID</b><br>
-      3. Paste both below and click <b>Save & Test</b>
-    </div>
+    <!-- PANEL 1: Main settings -->
+    <div id="alert-panel-main">
 
-    <div class="form-group" style="margin-bottom:14px">
-      <label>🤖 Telegram Bot Token</label>
-      <div class="pw-wrap">
-        <input type="password" id="tg-token" class="lg-inp" style="width:100%;font-family:var(--mono);font-size:13px"
-          placeholder="123456789:ABCDefgh…"/>
-        <button class="pw-eye" type="button" onclick="togglePw('tg-token',this)">👁</button>
+      <!-- Active status banner -->
+      <div id="alert-current-wrap" style="display:none;background:var(--green-bg);border:1.5px solid var(--green);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">✅ Alerts Active — Telegram Chat ID</div>
+        <div style="font-family:var(--mono);font-weight:700;font-size:20px;color:var(--text)" id="alert-current-display"></div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">Login alerts will be sent to this Telegram chat</div>
+      </div>
+      <div id="alert-none-wrap" style="background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--text2)">
+        🔕 No admin Telegram configured. Fill in details below to enable login alerts.
+      </div>
+
+      <!-- How it works -->
+      <div style="background:var(--blue-bg);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:16px;font-size:12px;line-height:1.7;color:var(--text)">
+        <b style="color:var(--blue)">Setup (2 mins):</b><br>
+        1. Open Telegram → search <b>@BotFather</b> → send <code>/newbot</code> → copy the <b>Bot Token</b><br>
+        2. Search <b>@userinfobot</b> → send any message → copy your <b>Chat ID</b><br>
+        3. Start your bot: open it in Telegram and press <b>Start</b><br>
+        4. Paste both below and click <b>Save &amp; Test</b>
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px">
+        <label>🤖 Bot Token</label>
+        <div class="pw-wrap">
+          <input type="password" id="alert-token" class="lg-inp" style="width:100%;font-family:var(--mono);font-size:13px"
+            placeholder="123456789:ABCDefgh…"/>
+          <button class="pw-eye" type="button" onclick="togglePw('alert-token',this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label>💬 Chat ID</label>
+        <input type="text" id="alert-chatid" class="lg-inp" style="width:100%;font-family:var(--mono);font-size:15px"
+          placeholder="e.g. 987654321"
+          oninput="this.value=this.value.replace(/[^\d-]/g,'')"/>
+        <span style="font-size:10px;color:var(--text2)">Get this from @userinfobot — can be negative for groups</span>
+      </div>
+
+      <div id="alert-status" style="display:none;margin-bottom:14px"></div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" id="alert-save-btn" onclick="saveAlertSettings()">💾 Save &amp; Test</button>
+        <button class="btn btn-ghost" onclick="startChangeChatId()" id="alert-change-btn" style="display:none">✏️ Change Chat ID</button>
+        <button class="btn btn-ghost" onclick="clearAlertSettings()" style="color:var(--red);display:none" id="alert-clear-btn">🗑 Disable</button>
+        <button class="btn btn-ghost" onclick="closeModal('modal-alerts')">Cancel</button>
       </div>
     </div>
-    <div class="form-group" style="margin-bottom:18px">
-      <label>💬 Your Chat ID (or Group ID)</label>
-      <input type="text" id="tg-chatid" class="lg-inp" style="width:100%;font-family:var(--mono);font-size:13px"
-        placeholder="e.g. 987654321"/>
+
+    <!-- PANEL 2: OTP verification to change Chat ID -->
+    <div id="alert-panel-otp" style="display:none">
+      <div style="background:var(--yellow-bg);border:1.5px solid var(--accent2);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:1.5">
+        🔐 An OTP has been sent to your <b>current</b> Telegram chat.<br>
+        Enter it below to confirm the change.
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label>🔢 Enter OTP</label>
+        <input type="text" id="alert-otp-input" class="lg-inp"
+          style="width:100%;font-family:var(--mono);font-size:26px;letter-spacing:10px;text-align:center"
+          placeholder="● ● ● ● ● ●" maxlength="6"
+          oninput="this.value=this.value.replace(/\D/g,'')"/>
+      </div>
+      <div id="alert-otp-status" style="display:none;margin-bottom:14px"></div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="verifyOTP()">✔ Verify &amp; Save</button>
+        <button class="btn btn-ghost" onclick="cancelOTP()">Cancel</button>
+        <button class="btn btn-ghost btn-sm" onclick="resendOTP()" style="color:var(--blue);margin-left:auto">🔁 Resend OTP</button>
+      </div>
     </div>
 
-    <!-- Status -->
-    <div id="tg-status" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600"></div>
-
-    <div class="form-actions">
-      <button class="btn btn-primary" onclick="saveAlertSettings()">💾 Save & Test</button>
-      <button class="btn btn-ghost" onclick="clearAlertSettings()" style="color:var(--red)">🗑 Clear / Disable</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-alerts')">Cancel</button>
-    </div>
-
-    <div style="margin-top:14px;font-size:11px;color:var(--text2);line-height:1.5">
-      ⚠️ Your token is stored only in <b>this browser's localStorage</b> — never sent to any server except Telegram.
-      If you clear browser data, you'll need to re-enter it.
-    </div>
   </div>
 </div>
 
@@ -574,7 +600,6 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
     <span id="header-username" class="hdr-username"></span>
     <button class="btn btn-sm hdr-btn" onclick="openAddLoan()">＋ <span class="hdr-txt">New Loan</span></button>
     <button class="btn btn-sm hdr-btn" onclick="openModal('modal-changepw')" title="Change Password">🔑 <span class="hdr-txt">Password</span></button>
-    <button class="btn btn-sm hdr-btn" onclick="openAlertSettings()" title="Login Alert Settings" id="hdr-alert-btn">🔔 <span class="hdr-txt">Alerts</span></button>
     <button class="btn btn-sm hdr-btn hdr-logout" onclick="doLogout()" title="Logout">🔓 <span class="hdr-txt">Logout</span></button>
   </div>
 </header>
@@ -936,7 +961,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
       <div class="form-group"><label>Duration (Weeks) *</label>
         <select id="f-weeks" onchange="calcPreview()" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface)">
           <option value="">Select weeks</option>
-          <option value="9">9 Weeks</option>
+          <option value="12">12 Weeks</option>
           <option value="21">21 Weeks</option>
           <option value="25">25 Weeks</option>
         </select>
@@ -1038,19 +1063,8 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
         <input type="date" id="pm-date"/>
       </div>
       <div class="form-group" style="grid-column:1/-1">
-        <label>Payment Mode *</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px" id="pm-mode-btns">
-          <button type="button" class="pm-mode-btn active" data-mode="Cash"     onclick="selectPayMode(this)">💵 Cash</button>
-          <button type="button" class="pm-mode-btn"        data-mode="PhonePe"  onclick="selectPayMode(this)">🟣 PhonePe</button>
-          <button type="button" class="pm-mode-btn"        data-mode="GPay"     onclick="selectPayMode(this)">🔵 GPay</button>
-          <button type="button" class="pm-mode-btn"        data-mode="Paytm"    onclick="selectPayMode(this)">🔷 Paytm</button>
-          <button type="button" class="pm-mode-btn"        data-mode="Other UPI" onclick="selectPayMode(this)">📲 Other UPI</button>
-        </div>
-        <input type="hidden" id="pm-mode" value="Cash"/>
-      </div>
-      <div class="form-group" style="grid-column:1/-1">
         <label>Note (optional)</label>
-        <input type="text" id="pm-note" placeholder="e.g. partial advance, week 3…"/>
+        <input type="text" id="pm-note" placeholder="e.g. Paid via UPI, partial advance, cash…"/>
       </div>
     </div>
     <div class="overpaid-warn" id="overpay-warn">⚠️ This exceeds the remaining balance. Save anyway?</div>
@@ -1099,7 +1113,7 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
       <div class="form-group"><label>Duration (Weeks) *</label>
         <select id="rn-weeks" onchange="calcRenewPreview()" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface)">
           <option value="">Select weeks</option>
-          <option value="9">9 Weeks</option>
+          <option value="12">12 Weeks</option>
           <option value="21">21 Weeks</option>
           <option value="25">25 Weeks</option>
         </select>
@@ -1521,7 +1535,7 @@ async function saveLoan() {
     const dup = _loans.find(l=>l.cardNo===cardNo);
     if(dup){ toast('Card No '+cardNo+' is already in use by '+dup.name+'!','error'); return; }
   }
-  const body = {name,village,aadhar,phone,address,amount,interest,startDate,weeks,overrideTotal,cardNo:cardNo||undefined};
+  const body = {name,village,aadhar:aadhar||undefined,phone,address,amount,interest,startDate,weeks,overrideTotal,cardNo:cardNo||undefined};
   let result;
   if(editId){
     const prevLoan = _loans.find(l=>l.id===editId);
@@ -1762,7 +1776,7 @@ async function saveRenewLoan() {
   if(!name||!village||isNaN(amount)||isNaN(interest)||!startDate||isNaN(weeks)||amount<=0||weeks<=0){
     toast('Please fill all fields!','error'); return;
   }
-  const body = { name, village, aadhar: prevLoan?.aadhar||'', phone: prevLoan?.phone||'',
+  const body = { name, village, aadhar: prevLoan?.aadhar||undefined, phone: prevLoan?.phone||'',
     address: prevLoan?.address||'', amount, interest, startDate, weeks, cardNo: prevLoan?.cardNo };
   const result = await POST('/loans/'+prevId+'/renew', body);
   if(!result) return;
@@ -1794,20 +1808,6 @@ function fillPayBanner(loanId, excludePayId) {
   document.getElementById('pib-rem').textContent   = '₹'+fmt(rem);
 }
 
-function selectPayMode(btn) {
-  document.querySelectorAll('.pm-mode-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('pm-mode').value = btn.dataset.mode;
-}
-
-function resetPayMode(mode) {
-  const m = mode || 'Cash';
-  document.getElementById('pm-mode').value = m;
-  document.querySelectorAll('.pm-mode-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === m);
-  });
-}
-
 function openAddPayment(loanId) {
   document.getElementById('pay-modal-title').textContent = '💰 Record Payment';
   document.getElementById('pm-loan-id').value  = loanId;
@@ -1815,7 +1815,6 @@ function openAddPayment(loanId) {
   document.getElementById('pm-amount').value   = '';
   document.getElementById('pm-date').value     = todayStr();
   document.getElementById('pm-note').value     = '';
-  resetPayMode('Cash');
   document.getElementById('overpay-warn').classList.remove('show');
   fillPayBanner(loanId,'');
   openModal('modal-payment');
@@ -1829,7 +1828,6 @@ function openEditPayment(payId) {
   document.getElementById('pm-amount').value   = pay.amount;
   document.getElementById('pm-date').value     = pay.payDate;
   document.getElementById('pm-note').value     = pay.note||'';
-  resetPayMode(pay.paymentMode||'Cash');
   document.getElementById('overpay-warn').classList.remove('show');
   fillPayBanner(pay.loanId, payId);
   openModal('modal-payment');
@@ -1845,44 +1843,42 @@ function checkOverpay() {
 }
 
 async function savePayment() {
-  const loanId      = document.getElementById('pm-loan-id').value;
-  const editId      = document.getElementById('pm-edit-id').value;
-  const amount      = parseFloat(document.getElementById('pm-amount').value);
-  const payDate     = document.getElementById('pm-date').value;
-  const note        = document.getElementById('pm-note').value.trim();
-  const paymentMode = document.getElementById('pm-mode').value || 'Cash';
+  const loanId  = document.getElementById('pm-loan-id').value;
+  const editId  = document.getElementById('pm-edit-id').value;
+  const amount  = parseFloat(document.getElementById('pm-amount').value);
+  const payDate = document.getElementById('pm-date').value;
+  const note    = document.getElementById('pm-note').value.trim();
 
   if(!loanId||isNaN(amount)||amount<=0||!payDate){ toast('Enter valid amount and date!','error'); return; }
 
   if(editId) {
     const prevPay = _payments.find(p=>p.id===editId);
     const payLoan = _loans.find(l=>l.id===loanId);
-    const result = await PUT('/payments/'+editId, {amount, payDate, note, paymentMode});
+    const result = await PUT('/payments/'+editId, {amount, payDate, note});
     if(!result) return;
     const payChanges = [];
     if(prevPay){
       if(prevPay.amount!==amount) payChanges.push({field:'Amount',old:'₹'+fmt(prevPay.amount),newVal:'₹'+fmt(amount)});
       if(prevPay.payDate!==payDate) payChanges.push({field:'Date',old:prevPay.payDate,newVal:payDate});
-      if((prevPay.paymentMode||'Cash')!==paymentMode) payChanges.push({field:'Mode',old:prevPay.paymentMode||'Cash',newVal:paymentMode});
       if((prevPay.note||'')!==(note||'')) payChanges.push({field:'Note',old:prevPay.note||'—',newVal:note||'—'});
     }
     _payments = _payments.map(p=>p.id===editId?{...result,id:result._id,loanId:result.loanId}:p);
     logActivity('payment','edit',
-      'Payment Edited — '+(payLoan?payLoan.name+' (Card No: '+payLoan.cardNo+')':'Unknown'),
-      'Amount: <b>₹'+fmt(amount)+'</b> | Mode: <b>'+paymentMode+'</b> | Date: <b>'+payDate+'</b>'+(note?' | Note: '+note:''),
+      'Payment Edited — '+( payLoan?payLoan.name+' (Card No: '+payLoan.cardNo+')':'Unknown'),
+      'Amount: <b>₹'+fmt(amount)+'</b> | Date: <b>'+payDate+'</b>'+(note?' | Note: '+note:''),
       payChanges
     );
     toast('Payment updated ✓','success');
   } else {
     const payLoan2 = _loans.find(l=>l.id===loanId);
-    const result = await POST('/payments', {loanId, amount, payDate, note, paymentMode});
+    const result = await POST('/payments', {loanId, amount, payDate, note});
     if(!result) return;
     _payments.push({...result, id:result._id, loanId:result.loanId});
     const totalPaidNow = _payments.filter(p=>p.loanId===loanId).reduce((s,p)=>s+p.amount,0);
     const rem = Math.max(0,(payLoan2?.totalAmount||0)-totalPaidNow);
     logActivity('payment','add',
       'Payment Received — '+(payLoan2?payLoan2.name+' (Card No: '+payLoan2.cardNo+')':'Unknown'),
-      'Paid: <b>₹'+fmt(amount)+'</b> | Mode: <b>'+paymentMode+'</b> | Date: <b>'+payDate+'</b>'+(note?' | Note: <b>'+note+'</b>':'')+' | Running total: <b>₹'+fmt(totalPaidNow)+'</b> | Remaining: <b>₹'+fmt(rem)+'</b> of ₹'+fmt(payLoan2?.totalAmount||0)
+      'Paid: <b>₹'+fmt(amount)+'</b> | Date: <b>'+payDate+'</b>'+(note?' | Note: <b>'+note+'</b>':'')+' | Running total: <b>₹'+fmt(totalPaidNow)+'</b> | Remaining: <b>₹'+fmt(rem)+'</b> of ₹'+fmt(payLoan2?.totalAmount||0)
     );
     toast('Payment recorded ✓','success');
   }
@@ -1935,18 +1931,21 @@ async function payFullAmount(loanId) {
   const totalPaid = _payments.filter(p=>p.loanId===loanId).reduce((s,p)=>s+p.amount,0);
   const remaining = Math.max(0, loan.totalAmount - totalPaid);
   if(remaining<=0){ toast('Already fully paid!','error'); return; }
-  // Open the payment modal pre-filled with the full remaining amount
-  // so the user can choose payment mode before confirming
-  document.getElementById('pay-modal-title').textContent = '⚡ Pay Full Remaining';
-  document.getElementById('pm-loan-id').value  = loanId;
-  document.getElementById('pm-edit-id').value  = '';
-  document.getElementById('pm-amount').value   = remaining;
-  document.getElementById('pm-date').value     = todayStr();
-  document.getElementById('pm-note').value     = 'Full remaining paid at once';
-  resetPayMode('Cash');
-  document.getElementById('overpay-warn').classList.remove('show');
-  fillPayBanner(loanId,'');
-  openModal('modal-payment');
+  showConfirm('⚡','Pay Full Remaining?',
+    `Record <b>₹${fmt(remaining)}</b> as full payment for <b>${esc(loan.name)}</b>?`,
+    '⚡ Yes, Pay ₹'+fmt(remaining),
+    async () => {
+      const result = await POST('/payments',{loanId,amount:remaining,payDate:todayStr(),note:'Full remaining paid at once'});
+      if(!result) return;
+      _payments.push({...result,id:result._id,loanId:result.loanId});
+      logActivity('payment','add',
+        'Full Payment — '+loan.name+' (Card No: '+loan.cardNo+')',
+        'Full remaining amount of <b>₹'+fmt(remaining)+'</b> paid at once | Date: <b>'+todayStr()+'</b> | Loan fully cleared ✅'
+      );
+      toast('Full payment recorded ✓','success');
+      renderLoans(); renderDashboard(); renderPaymentsPage();
+    }
+  );
 }
 
 // ═══════════════════════════════════════════════
@@ -1959,15 +1958,12 @@ function buildLoanCard(loan) {
   const pct = Math.min(100, Math.round((totalPaid/loan.totalAmount)*100));
   const done = remaining === 0;
 
-  const modeEmoji = m => ({'Cash':'💵','PhonePe':'🟣','GPay':'🔵','Paytm':'🔷','Other UPI':'📲'}[m]||'💳');
-  const modeClass = m => (m==='Cash'?'cash':'upi');
   const payRows = payments.map((p,i)=>`
     <div class="pay-entry">
       <div class="pay-entry-left">
         <span class="pay-serial">#${i+1}</span>
         <div>
           <span class="pay-amount">₹${fmt(p.amount)}</span>
-          <span class="pay-mode-badge ${modeClass(p.paymentMode||'Cash')}">${modeEmoji(p.paymentMode||'Cash')} ${esc(p.paymentMode||'Cash')}</span>
           <span class="pay-date">📅 ${p.payDate}</span>
           ${p.note?`<div class="pay-note">"${esc(p.note)}"</div>`:''}
         </div>
@@ -2521,6 +2517,16 @@ async function initAuth(){
     if(me.ok){
       document.getElementById('login-screen').style.display='none';
       setText('header-username','👤 '+_username);
+      // Load telegram config from DB into memory
+      try {
+        const cfg = await fetch(API+'/auth/alert-config',{headers:authHeader()});
+        if(cfg.ok){
+          const d = await cfg.json();
+          _tgBotToken = d.telegramBotToken || '';
+          _tgChatId   = d.telegramChatId   || '';
+          updateAlertHeaderBtn();
+        }
+      } catch(e){}
       return true;
     }
   }
@@ -2544,152 +2550,247 @@ function togglePw(inputId,btn){
 }
 
 // ═══════════════════════════════════════════════
-// TELEGRAM LOGIN ALERTS
+// TELEGRAM LOGIN ALERTS  (admin — OTP protected)
 // ═══════════════════════════════════════════════
-const TG_TOKEN_KEY  = 'gs_tg_token';
-const TG_CHATID_KEY = 'gs_tg_chatid';
+// Telegram config — stored in MongoDB, cached in memory after login
+let _tgBotToken = '';
+let _tgChatId   = '';
 
-function getTelegramConfig() {
+let _pendingOtpCode    = '';  // 6-digit OTP generated locally
+let _pendingNewChatId  = '';  // new chat ID waiting for OTP confirm
+let _pendingNewToken   = '';  // new token waiting for OTP confirm
+
+function getAdminConfig() {
   return {
-    token:  localStorage.getItem(TG_TOKEN_KEY)  || '',
-    chatId: localStorage.getItem(TG_CHATID_KEY) || ''
+    token:  _tgBotToken,
+    chatId: _tgChatId
   };
 }
 
-function openAlertSettings() {
-  const { token, chatId } = getTelegramConfig();
-  const tokenEl  = document.getElementById('tg-token');
-  const chatEl   = document.getElementById('tg-chatid');
-  const statusEl = document.getElementById('tg-status');
-  if (tokenEl)  tokenEl.value  = token;
-  if (chatEl)   chatEl.value   = chatId;
-  if (statusEl) statusEl.style.display = 'none';
-  // Show active badge on header button
-  const btn = document.getElementById('hdr-alert-btn');
-  if (btn) btn.innerHTML = (token && chatId)
-    ? '🔔 <span class="hdr-txt">Alerts</span> <span style="background:#2a7d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;vertical-align:middle">ON</span>'
-    : '🔕 <span class="hdr-txt">Alerts</span>';
-  openModal('modal-alerts');
+function setAlertStatus(elId, msg, type) {
+  const el = document.getElementById(elId); if (!el) return;
+  const styles = {
+    ok:    'background:var(--green-bg);color:var(--green)',
+    error: 'background:var(--red-bg);color:var(--red)',
+    info:  'background:var(--surface2);color:var(--text2)'
+  };
+  el.innerHTML = msg;
+  el.style.cssText = `display:block;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;margin-bottom:14px;${styles[type]||styles.info}`;
 }
 
-async function sendTelegramMessage(token, chatId, text) {
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
-  const res = await fetch(url, {
+function updateAlertHeaderBtn() { /* alerts button removed from header */ }
+
+// Core Telegram send
+async function sendTelegram(token, chatId, text) {
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text })
+    body: JSON.stringify({ chat_id: chatId, text }),
+    signal: AbortSignal.timeout(10000)
   });
   const data = await res.json();
   if (!data.ok) throw new Error(data.description || 'Telegram error');
   return data;
 }
 
+function openAlertSettings() {
+  const { token, chatId } = getAdminConfig();
+
+  // Populate fields
+  const tokenEl  = document.getElementById('alert-token');
+  const chatEl   = document.getElementById('alert-chatid');
+  if (tokenEl)  tokenEl.value  = token;
+  if (chatEl)   chatEl.value   = chatId;
+
+  // Hide status
+  const statusEl = document.getElementById('alert-status');
+  if (statusEl) statusEl.style.display = 'none';
+
+  const curWrap   = document.getElementById('alert-current-wrap');
+  const noneWrap  = document.getElementById('alert-none-wrap');
+  const curDisp   = document.getElementById('alert-current-display');
+  const saveBtn   = document.getElementById('alert-save-btn');
+  const changeBtn = document.getElementById('alert-change-btn');
+  const clearBtn  = document.getElementById('alert-clear-btn');
+
+  if (token && chatId) {
+    if (curWrap)  curWrap.style.display  = '';
+    if (noneWrap) noneWrap.style.display = 'none';
+    if (curDisp)  curDisp.textContent    = 'Chat ID: ' + chatId;
+    if (saveBtn)   saveBtn.style.display   = 'none';
+    if (changeBtn) changeBtn.style.display = '';
+    if (clearBtn)  clearBtn.style.display  = '';
+    // Lock fields
+    if (tokenEl)  { tokenEl.readOnly = true;  tokenEl.style.opacity = '.6'; }
+    if (chatEl)   { chatEl.readOnly  = true;  chatEl.style.opacity  = '.6'; }
+  } else {
+    if (curWrap)  curWrap.style.display  = 'none';
+    if (noneWrap) noneWrap.style.display = '';
+    if (saveBtn)   saveBtn.style.display   = '';
+    if (changeBtn) changeBtn.style.display = 'none';
+    if (clearBtn)  clearBtn.style.display  = 'none';
+    if (saveBtn)   saveBtn.onclick = saveAlertSettings;
+    if (saveBtn)   saveBtn.textContent = '💾 Save & Test';
+    if (tokenEl)  { tokenEl.readOnly = false;  tokenEl.style.opacity = '1'; }
+    if (chatEl)   { chatEl.readOnly  = false;  chatEl.style.opacity  = '1'; }
+  }
+
+  document.getElementById('alert-panel-main').style.display = '';
+  document.getElementById('alert-panel-otp').style.display  = 'none';
+  updateAlertHeaderBtn();
+  openModal('modal-alerts');
+}
+
 async function saveAlertSettings() {
-  const token  = document.getElementById('tg-token')?.value.trim()  || '';
-  const chatId = document.getElementById('tg-chatid')?.value.trim() || '';
-  const statusEl = document.getElementById('tg-status');
+  const token  = document.getElementById('alert-token')?.value.trim()  || '';
+  const chatId = document.getElementById('alert-chatid')?.value.trim() || '';
 
-  if (!token || !chatId) {
-    if (statusEl) {
-      statusEl.textContent = '⚠️ Please enter both Bot Token and Chat ID.';
-      statusEl.style.cssText = 'display:block;background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
-    }
-    return;
-  }
+  if (!token)  { setAlertStatus('alert-status', '⚠️ Enter your Bot Token', 'error'); return; }
+  if (!chatId) { setAlertStatus('alert-status', '⚠️ Enter your Chat ID', 'error'); return; }
 
-  if (statusEl) {
-    statusEl.textContent = '⏳ Sending test message…';
-    statusEl.style.cssText = 'display:block;background:var(--surface2);color:var(--text2);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
-  }
+  setAlertStatus('alert-status', '⏳ Sending test message to Telegram…', 'info');
+
+  const now = new Date();
+  const testMsg =
+    `✅ GramSeva — Alert Test\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `Login alerts are now ACTIVE!\n` +
+    `Every login will trigger a message like this.\n\n` +
+    `Time : ${now.toLocaleString('en-IN')}\n` +
+    `User : ${_username || 'Admin'}\n` +
+    `━━━━━━━━━━━━━━━━━━`;
 
   try {
-    const now = new Date();
-    const testMsg =
-      `✅ GramSeva — Alert Test\n` +
-      `━━━━━━━━━━━━━━━━━━\n` +
-      `Login alerts are now ACTIVE!\n` +
-      `You will receive a message like this on every login.\n\n` +
-      `🕐 Time : ${now.toLocaleString('en-IN')}\n` +
-      `👤 User : ${_username || 'Admin'}\n` +
-      `━━━━━━━━━━━━━━━━━━`;
-
-    await sendTelegramMessage(token, chatId, testMsg);
-    localStorage.setItem(TG_TOKEN_KEY,  token);
-    localStorage.setItem(TG_CHATID_KEY, chatId);
-
-    if (statusEl) {
-      statusEl.textContent = '✅ Test message sent! Check your Telegram. Alerts are now active.';
-      statusEl.style.cssText = 'display:block;background:var(--green-bg);color:var(--green);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
-    }
-    // Update header button badge
-    const btn = document.getElementById('hdr-alert-btn');
-    if (btn) btn.innerHTML = '🔔 <span class="hdr-txt">Alerts</span> <span style="background:#2a7d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;vertical-align:middle">ON</span>';
-
-    setTimeout(() => closeModal('modal-alerts'), 2500);
+    await sendTelegram(token, chatId, testMsg);
+    // Save to MongoDB via backend
+    await fetch(API + '/auth/alert-config', {
+      method: 'POST',
+      headers: authHeader(),
+      body: JSON.stringify({ telegramBotToken: token, telegramChatId: chatId })
+    });
+    _tgBotToken = token;
+    _tgChatId   = chatId;
+    setAlertStatus('alert-status', '✅ Test message sent! Check Telegram. Alerts are now active.', 'ok');
+    updateAlertHeaderBtn();
+    setTimeout(() => closeModal('modal-alerts'), 2200);
   } catch(err) {
-    if (statusEl) {
-      statusEl.textContent = '❌ Failed: ' + err.message + ' — Double-check your Bot Token and Chat ID.';
-      statusEl.style.cssText = 'display:block;background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
-    }
+    setAlertStatus('alert-status',
+      `❌ Failed: ${err.message}<br><small>Make sure you pressed <b>Start</b> on your bot in Telegram.</small>`,
+      'error');
   }
+}
+
+// ── Change Chat ID flow — OTP sent to current chat first ──
+function startChangeChatId() {
+  const tokenEl  = document.getElementById('alert-token');
+  const chatEl   = document.getElementById('alert-chatid');
+  const saveBtn  = document.getElementById('alert-save-btn');
+  const changeBtn = document.getElementById('alert-change-btn');
+  const clearBtn  = document.getElementById('alert-clear-btn');
+  const curWrap   = document.getElementById('alert-current-wrap');
+
+  // Unlock fields for new values
+  if (tokenEl)  { tokenEl.value = ''; tokenEl.readOnly = false; tokenEl.style.opacity = '1'; }
+  if (chatEl)   { chatEl.value  = ''; chatEl.readOnly  = false; chatEl.style.opacity  = '1'; }
+  if (curWrap)   curWrap.style.display  = 'none';
+  if (saveBtn)  { saveBtn.style.display = ''; saveBtn.onclick = initiateChangeWithOTP; saveBtn.textContent = '📲 Send OTP & Change'; }
+  if (changeBtn) changeBtn.style.display = 'none';
+  if (clearBtn)  clearBtn.style.display  = 'none';
+  setAlertStatus('alert-status', 'ℹ️ Enter new Bot Token & Chat ID, then click Send OTP. An OTP will be sent to your current Telegram first.', 'info');
+}
+
+async function initiateChangeWithOTP() {
+  const newToken  = document.getElementById('alert-token')?.value.trim()  || '';
+  const newChatId = document.getElementById('alert-chatid')?.value.trim() || '';
+
+  if (!newToken)  { setAlertStatus('alert-status', '⚠️ Enter new Bot Token', 'error'); return; }
+  if (!newChatId) { setAlertStatus('alert-status', '⚠️ Enter new Chat ID', 'error'); return; }
+
+  const { token: curToken, chatId: curChatId } = getAdminConfig();
+  _pendingNewToken  = newToken;
+  _pendingNewChatId = newChatId;
+  _pendingOtpCode   = String(Math.floor(100000 + Math.random() * 900000));
+
+  setAlertStatus('alert-status', '⏳ Sending OTP to your current Telegram chat…', 'info');
+
+  try {
+    await sendTelegram(curToken, curChatId,
+      `🔐 GramSeva — OTP\n━━━━━━━━━━━━━━━━\nSomeone requested to change the admin Telegram.\n\nOTP: ${_pendingOtpCode}\n\nValid for 5 minutes. Do NOT share this.\n━━━━━━━━━━━━━━━━`
+    );
+    document.getElementById('alert-panel-main').style.display = 'none';
+    document.getElementById('alert-panel-otp').style.display  = '';
+    document.getElementById('alert-otp-input').value = '';
+    document.getElementById('alert-otp-status').style.display = 'none';
+    document.getElementById('alert-otp-input').focus();
+    setTimeout(() => { _pendingOtpCode = ''; }, 5 * 60 * 1000);
+  } catch(err) {
+    setAlertStatus('alert-status', '❌ Failed to send OTP: ' + err.message, 'error');
+  }
+}
+
+async function resendOTP() {
+  const { token: curToken, chatId: curChatId } = getAdminConfig();
+  _pendingOtpCode = String(Math.floor(100000 + Math.random() * 900000));
+  try {
+    await sendTelegram(curToken, curChatId,
+      `🔐 GramSeva — OTP (resent)\n\nOTP: ${_pendingOtpCode}\n\nValid for 5 minutes.`
+    );
+    setAlertStatus('alert-otp-status', '✅ OTP resent to Telegram!', 'ok');
+    setTimeout(() => { _pendingOtpCode = ''; }, 5 * 60 * 1000);
+  } catch(err) {
+    setAlertStatus('alert-otp-status', '❌ Resend failed: ' + err.message, 'error');
+  }
+}
+
+async function verifyOTP() {
+  const entered = document.getElementById('alert-otp-input')?.value.trim() || '';
+
+  if (!_pendingOtpCode) {
+    setAlertStatus('alert-otp-status', '⏰ OTP expired. Click Resend.', 'error'); return;
+  }
+  if (entered !== _pendingOtpCode) {
+    setAlertStatus('alert-otp-status', '❌ Incorrect OTP. Try again.', 'error'); return;
+  }
+
+  setAlertStatus('alert-otp-status', '⏳ OTP verified! Testing new chat…', 'info');
+
+  try {
+    await sendTelegram(_pendingNewToken, _pendingNewChatId,
+      `✅ GramSeva — Admin Telegram Changed!\nLogin alerts will now be sent here.\nTime: ${new Date().toLocaleString('en-IN')}`
+    );
+    // Save to MongoDB via backend
+    await fetch(API + '/auth/alert-config', {
+      method: 'POST',
+      headers: authHeader(),
+      body: JSON.stringify({ telegramBotToken: _pendingNewToken, telegramChatId: _pendingNewChatId })
+    });
+    _tgBotToken = _pendingNewToken;
+    _tgChatId   = _pendingNewChatId;
+    _pendingOtpCode = ''; _pendingNewToken = ''; _pendingNewChatId = '';
+    updateAlertHeaderBtn();
+    toast('Admin Telegram updated ✓', 'success');
+    closeModal('modal-alerts');
+  } catch(err) {
+    setAlertStatus('alert-otp-status', '❌ New chat test failed: ' + err.message + ' — Check token & chat ID.', 'error');
+  }
+}
+
+function cancelOTP() {
+  _pendingOtpCode = ''; _pendingNewToken = ''; _pendingNewChatId = '';
+  openAlertSettings();
 }
 
 function clearAlertSettings() {
-  localStorage.removeItem(TG_TOKEN_KEY);
-  localStorage.removeItem(TG_CHATID_KEY);
-  const tokenEl  = document.getElementById('tg-token');
-  const chatEl   = document.getElementById('tg-chatid');
-  const statusEl = document.getElementById('tg-status');
-  if (tokenEl)  tokenEl.value  = '';
-  if (chatEl)   chatEl.value   = '';
-  if (statusEl) {
-    statusEl.textContent = '🔕 Alerts disabled. No more login notifications will be sent.';
-    statusEl.style.cssText = 'display:block;background:var(--surface2);color:var(--text2);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600';
-  }
-  const btn = document.getElementById('hdr-alert-btn');
-  if (btn) btn.innerHTML = '🔕 <span class="hdr-txt">Alerts</span>';
-  toast('Login alerts disabled','');
-}
-
-async function sendLoginAlert(username, device, os, browser, location) {
-  const { token, chatId } = getTelegramConfig();
-  if (!token || !chatId) return;
-
-  const now = new Date();
-  const timeStr = now.toLocaleString('en-IN', {
-    day:'2-digit', month:'short', year:'numeric',
-    hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true
-  });
-
-  // Strip HTML tags from device string (e.g. "📱 Mobile" → "Mobile")
-  const cleanDevice = device.replace(/<[^>]*>/g,'').replace(/^[\p{Emoji}\s]+/u,'').trim() || device;
-
-  // Plain text message — most reliable, no parse_mode issues
-  const msg =
-    `🚨 GramSeva Login Alert\n` +
-    `━━━━━━━━━━━━━━━━━━\n` +
-    `👤 User     : ${username}\n` +
-    `🕐 Time     : ${timeStr}\n` +
-    `📍 Location : ${location}\n` +
-    `💻 Device   : ${cleanDevice}\n` +
-    `🖥 OS       : ${os}\n` +
-    `🌐 Browser  : ${browser}\n` +
-    `━━━━━━━━━━━━━━━━━━\n` +
-    `⚠️ Not you? Change your password immediately!`;
-
-  try {
-    const url = `https://api.telegram.org/bot${token}/sendMessage`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: msg })
-      // No parse_mode — plain text is safest
-    });
-    const data = await res.json();
-    if (!data.ok) console.warn('GramSeva alert error:', data.description);
-  } catch(e) {
-    console.warn('GramSeva: Telegram alert failed —', e.message);
-  }
+  fetch(API + '/auth/alert-config', {
+    method: 'POST',
+    headers: authHeader(),
+    body: JSON.stringify({ telegramBotToken: '', telegramChatId: '' })
+  }).catch(() => {});
+  _tgBotToken = '';
+  _tgChatId   = '';
+  updateAlertHeaderBtn();
+  toast('Login alerts disabled', '');
+  closeModal('modal-alerts');
 }
 
 // ═══════════════════════════════════════════════
@@ -2773,38 +2874,77 @@ async function getIPLocation() {
 
 async function logLoginSession(username) {
   const { device, os, browser } = getDeviceInfo();
+  const now = new Date();
+  const timeStr = now.toLocaleString('en-IN', {
+    day:'2-digit', month:'short', year:'numeric',
+    hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true
+  });
+  const cleanDevice = device.replace(/<[^>]*>/g,'').replace(/^[\p{Emoji}\s]+/u,'').trim() || device;
 
-  let location = 'Location unavailable';
+  // ── Stage 1: Send alert IMMEDIATELY with what we know ──
+  // Don't wait for location — user gets instant notification
+  const { token, chatId } = getAdminConfig();
+  if (token && chatId) {
+    const quickMsg =
+      `🚨 GramSeva Login Alert\n` +
+      `━━━━━━━━━━━━━━━━━━\n` +
+      `👤 User    : ${username}\n` +
+      `🕐 Time    : ${timeStr}\n` +
+      `💻 Device  : ${cleanDevice}\n` +
+      `🖥 OS      : ${os}\n` +
+      `🌐 Browser : ${browser}\n` +
+      `📍 Location: Detecting…\n` +
+      `━━━━━━━━━━━━━━━━━━\n` +
+      `⚠️ Not you? Change your password immediately!`;
+    sendTelegram(token, chatId, quickMsg).catch(() => {});
+  }
+
+  // ── Stage 2: Resolve location, then send follow-up ──
+  let location = '';
   let locationSource = '';
 
-  // 1️⃣ Try GPS first — most accurate (prompts browser permission)
+  // Try GPS first (accurate) — browser will prompt for permission
   const gps = await getGPSLocation();
   if (gps) {
     const gpsLoc = await reverseGeocode(gps.lat, gps.lon);
     if (gpsLoc) {
       location = gpsLoc;
-      locationSource = ' <span style="font-size:10px;background:#e8f5e9;color:#2a7d4f;padding:1px 5px;border-radius:8px;font-weight:700">🛰 GPS</span>';
+      locationSource = '🛰 GPS';
     }
   }
 
-  // 2️⃣ Fall back to IP geolocation if GPS denied/unavailable
-  if (!locationSource) {
+  // Fall back to IP if GPS denied/failed
+  if (!location) {
     const ipLoc = await getIPLocation();
     if (ipLoc) {
       location = ipLoc;
-      locationSource = ' <span style="font-size:10px;background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:8px;font-weight:700">🌐 IP (approx)</span>';
+      locationSource = '🌐 IP (approx)';
     }
   }
+
+  if (!location) location = 'Not available (location denied)';
+
+  // Send location follow-up to Telegram
+  if (token && chatId) {
+    const locMsg =
+      `📍 Location update for login above:\n` +
+      `${location}  [${locationSource}]`;
+    sendTelegram(token, chatId, locMsg).catch(() => {});
+  }
+
+  // ── Log to Activity Log (with full details) ──
+  const locSourceBadge = locationSource === '🛰 GPS'
+    ? ' <span style="font-size:10px;background:#e8f5e9;color:#2a7d4f;padding:1px 5px;border-radius:8px;font-weight:700">🛰 GPS</span>'
+    : locationSource === '🌐 IP (approx)'
+    ? ' <span style="font-size:10px;background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:8px;font-weight:700">🌐 IP</span>'
+    : '';
 
   logActivity(
     'session', 'login',
     `Login — ${username}`,
-    `Device: <b>${device}</b> | OS: <b>${os}</b> | Browser: <b>${browser}</b> | 📍 ${location}${locationSource}`,
+    `Device: <b>${device}</b> | OS: <b>${os}</b> | Browser: <b>${browser}</b> | 📍 ${location}${locSourceBadge}`,
     null
   );
-
-  // 🔔 Send Telegram alert (non-blocking)
-  sendLoginAlert(username, device, os, browser, location);
 }
 
 async function doLogin(){
@@ -2815,6 +2955,8 @@ async function doLogin(){
   const data=await res.json();
   if(!res.ok){showLoginError('login-error',data.message);return;}
   _token=data.token; _username=data.username;
+  _tgBotToken = data.telegramBotToken || '';
+  _tgChatId   = data.telegramChatId   || '';
   localStorage.setItem('gs_token',_token);
   localStorage.setItem('gs_username',_username);
   document.getElementById('login-screen').style.display='none';
@@ -2823,11 +2965,7 @@ async function doLogin(){
   await loadAll();
   renderDashboard();syncDropdowns();
   // Update alert button badge
-  const { token: tgT, chatId: tgC } = getTelegramConfig();
-  const alertBtn = document.getElementById('hdr-alert-btn');
-  if (alertBtn) alertBtn.innerHTML = (tgT && tgC)
-    ? '🔔 <span class="hdr-txt">Alerts</span> <span style="background:#2a7d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;vertical-align:middle">ON</span>'
-    : '🔕 <span class="hdr-txt">Alerts</span>';
+  updateAlertHeaderBtn();
   // Log the login session (runs in background — non-blocking)
   logLoginSession(_username);
 }
