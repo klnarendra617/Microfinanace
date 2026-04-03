@@ -1010,6 +1010,16 @@ button,input,select,textarea{font-family:var(--font)}button{cursor:pointer}
           style="border-color:var(--accent2)" title="Enter total to pay — interest % will be auto-calculated"/>
         <span style="font-size:10px;color:var(--text2);margin-top:2px">Fill this OR Interest Rate — they update each other</span>
       </div>
+      <div class="form-group">
+        <label>💳 Payment Mode</label>
+        <select id="f-payment-mode" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface)">
+          <option value="Cash">💵 Cash</option>
+          <option value="PhonePe">📲 PhonePe</option>
+          <option value="GPay">📱 GPay</option>
+          <option value="Paytm">💸 Paytm</option>
+          <option value="Other">🔄 Other</option>
+        </select>
+      </div>
     </div>
 
     <div class="calc-preview" id="calc-preview" style="display:none">
@@ -1466,6 +1476,7 @@ function openAddLoan() {
   ['f-name','f-village','f-aadhar','f-phone','f-address','f-amount','f-interest','f-total-override','f-card-no']
     .forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.style.background='';}});
   const wkSel=document.getElementById('f-weeks');if(wkSel)wkSel.value='';
+  const pmSel=document.getElementById('f-payment-mode');if(pmSel)pmSel.value='Cash';
   document.getElementById('card-no-warn').style.display='none';
   document.getElementById('card-no-ok').style.display='none';
   const cnEl2=document.getElementById('f-card-no');if(cnEl2){cnEl2.readOnly=false;cnEl2.style.opacity='1';cnEl2.title='';}
@@ -1494,6 +1505,7 @@ function openEditLoan(id) {
   const cnEl = document.getElementById('f-card-no'); if(cnEl){cnEl.value=loan.cardNo||'';cnEl.readOnly=true;cnEl.style.opacity='.6';cnEl.title='Card number cannot be changed after creation';}
   document.getElementById('card-no-warn').style.display='none';
   document.getElementById('card-no-ok').style.display='none';
+  const pmEl = document.getElementById('f-payment-mode'); if(pmEl) pmEl.value = loan.paymentMode || 'Cash';
   const ovEl = document.getElementById('f-total-override');
   if(ovEl){ ovEl.value = loan.overrideTotal||''; ovEl.style.background = loan.overrideTotal>0?'var(--yellow-bg)':''; }
   document.getElementById('f-edit-id').value = loan.id;
@@ -1600,6 +1612,8 @@ async function saveLoan() {
   const overrideEl = document.getElementById('f-total-override');
   const overrideTotal = overrideEl ? parseFloat(overrideEl.value)||0 : 0;
 
+  const paymentMode = document.getElementById('f-payment-mode')?.value || 'Cash';
+
   const cardNoEl = document.getElementById('f-card-no');
   const cardNo = cardNoEl && !cardNoEl.readOnly ? parseInt(cardNoEl.value)||null : null;
   if(!editId && !cardNo){ toast('Enter a card number!','error'); return; }
@@ -1607,7 +1621,7 @@ async function saveLoan() {
     const dup = _loans.find(l=>l.cardNo===cardNo);
     if(dup){ toast('Card No '+cardNo+' is already in use by '+dup.name+'!','error'); return; }
   }
-  const body = {name,village,aadhar:aadhar||undefined,phone,address,amount,interest,startDate,weeks,overrideTotal,cardNo:cardNo||undefined};
+  const body = {name,village,aadhar:aadhar||undefined,phone,address,amount,interest,startDate,weeks,overrideTotal,cardNo:cardNo||undefined,paymentMode};
   let result;
   if(editId){
     const prevLoan = _loans.find(l=>l.id===editId);
@@ -2092,6 +2106,7 @@ function buildLoanCard(loan) {
         <span class="card-village">${esc(loan.village)}</span>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:5px">
           ${loan.cardNo?`<span style="font-size:12px;font-family:var(--mono);background:var(--blue-bg);color:var(--blue);padding:3px 10px;border-radius:20px;font-weight:700">Card No: ${loan.cardNo}</span>`:''}
+          ${loan.paymentMode?`<span style="font-size:11px;font-weight:700;background:${loan.paymentMode==='Cash'?'#e8f4ec':loan.paymentMode==='PhonePe'?'#f0e8ff':loan.paymentMode==='GPay'?'#e8f3fc':loan.paymentMode==='Paytm'?'#fff8e1':'#f5f5f5'};color:${loan.paymentMode==='Cash'?'var(--green)':loan.paymentMode==='PhonePe'?'#7c3aed':loan.paymentMode==='GPay'?'var(--blue)':loan.paymentMode==='Paytm'?'var(--yellow)':'var(--text2)'};padding:3px 10px;border-radius:20px">${loan.paymentMode==='Cash'?'💵':loan.paymentMode==='PhonePe'?'📲':loan.paymentMode==='GPay'?'📱':loan.paymentMode==='Paytm'?'💸':'🔄'} ${loan.paymentMode}</span>`:''}
           ${loan.aadhar?`<span style="font-size:11px;color:var(--text2)">🪪 ${formatAadharDisplay(loan.aadhar)}</span>`:''}
           ${loan.phone?`<span style="font-size:11px;color:var(--text2)">📞 ${esc(loan.phone)}</span>`:''}
           ${loan.address?`<span style="font-size:11px;color:var(--text2)">📍 ${esc(loan.address)}</span>`:''}
@@ -2692,7 +2707,7 @@ async function sendTelegram(token, chatId, text) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, text }),
-    signal: AbortSignal.timeout(10000)
+    signal: makeAbortSignal(10000)
   });
   const data = await res.json();
   if (!data.ok) throw new Error(data.description || 'Telegram error');
@@ -2938,13 +2953,24 @@ function getDeviceInfo() {
   return { device, os, browser };
 }
 
+// Cross-browser AbortSignal timeout polyfill
+function makeAbortSignal(ms) {
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), ms);
+  return ctrl.signal;
+}
+
 async function getGPSLocation() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) { resolve(null); return; }
+    let settled = false;
+    const done = (val) => { if (!settled) { settled = true; resolve(val); } };
+    // Hard fallback timer — geolocation API's own timeout can be unreliable on Firefox/Safari
+    const fallback = setTimeout(() => done(null), 22000);
     navigator.geolocation.getCurrentPosition(
-      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      ()  => resolve(null),
-      { timeout: 20000, maximumAge: 0 }
+      pos => { clearTimeout(fallback); done({ lat: pos.coords.latitude, lon: pos.coords.longitude }); },
+      ()  => { clearTimeout(fallback); done(null); },
+      { timeout: 20000, maximumAge: 0, enableHighAccuracy: false }
     );
   });
 }
@@ -2954,7 +2980,7 @@ async function reverseGeocode(lat, lon) {
     // OpenStreetMap Nominatim — free, no API key required
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
-      { headers: { 'Accept-Language': 'en' }, signal: AbortSignal.timeout(6000) }
+      { headers: { 'Accept-Language': 'en' }, signal: makeAbortSignal(6000) }
     );
     if (!res.ok) return null;
     const d = await res.json();
@@ -2968,7 +2994,7 @@ async function reverseGeocode(lat, lon) {
 
 async function getIPLocation() {
   try {
-    const geo = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+    const geo = await fetch('https://ipapi.co/json/', { signal: makeAbortSignal(4000) });
     if (!geo.ok) return null;
     const g = await geo.json();
     const city    = g.city || '';

@@ -71,7 +71,7 @@ router.get('/trash', auth, async (req, res) => {
 // ── CREATE loan ──────────────────────────────────────────────────────────────
 router.post('/', auth, async (req, res) => {
   try {
-    const { name, village, aadhar, phone, address, amount, interest, startDate, weeks } = req.body;
+    const { name, village, aadhar, phone, address, amount, interest, startDate, weeks, paymentMode } = req.body;
 
     const existing = await Loan.findOne({ aadhar, closed: false, createdBy: req.user.id });
     if (existing) return res.status(400).json({
@@ -88,6 +88,7 @@ router.post('/', auth, async (req, res) => {
     const loan = await Loan.create({
       cardNo, name, village, aadhar, phone, address,
       amount, interest, startDate, weeks, totalAmount, weeklyEMI,
+      paymentMode: paymentMode || 'Cash',
       createdBy: req.user.id
     });
     res.status(201).json(loan);
@@ -142,12 +143,12 @@ router.post(
 // ── UPDATE loan ──────────────────────────────────────────────────────────────
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { name, village, aadhar, phone, address, amount, interest, startDate, weeks, overrideTotal } = req.body;
+    const { name, village, aadhar, phone, address, amount, interest, startDate, weeks, overrideTotal, paymentMode } = req.body;
     const { totalAmount, weeklyEMI } = calc(amount, interest, weeks, overrideTotal || 0);
     const loan = await Loan.findOneAndUpdate(
       { _id: req.params.id, createdBy: req.user.id },
       { name, village, aadhar: aadhar||'', phone, address, amount, interest, startDate, weeks,
-        overrideTotal: overrideTotal||0, totalAmount, weeklyEMI },
+        overrideTotal: overrideTotal||0, totalAmount, weeklyEMI, paymentMode: paymentMode||'Cash' },
       { new: true }
     );
     if (!loan) return res.status(404).json({ message: 'Loan not found.' });

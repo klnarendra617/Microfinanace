@@ -17,6 +17,9 @@ const loanSchema = new mongoose.Schema({
   renewedFrom: { type: mongoose.Schema.Types.ObjectId, ref: 'Loan', default: null },
   createdBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 
+  // ── Payment Mode ─────────────────────────────────────
+  paymentMode: { type: String, default: 'Cash', enum: ['Cash', 'PhonePe', 'GPay', 'Paytm', 'Other'] },
+
   // ── Soft delete (Trash) ───────────────────────────────
   // Set when loan is "deleted" — auto hard-deleted after 7 days via cron
   deletedAt: { type: Date, default: null },
